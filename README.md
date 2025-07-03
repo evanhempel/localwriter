@@ -19,6 +19,8 @@ This is a LibreOffice Writer extension that enables inline generative editing wi
         *   [text-generation-webui](#text-generation-webui)
         *   [Ollama](#ollama)
 *   [Settings](#settings)
+*   [Local Development](#local-development)
+    *   [Running in Developer Mode](#running-in-developer-mode)
 *   [License](#license)
 
 ## Features
@@ -79,6 +81,56 @@ In the settings, you can configure:
 *   Maximum number of additional tokens for "Extend Selection."
 *   Maximum number of additional tokens (above the number of letters in the original selection) for "Edit Selection."
 *   Custom "system prompts" for both "Extend Selection" and "Edit Selection." These prompts are prepended to the selection before sending it to the language model.  For example, you can use a sample of your writing to guide the model's style.
+
+## Local Development
+
+For developers who want to modify or contribute to Localwriter, you can run and test the extension directly from your source code without packaging it into an `.oxt` file. This allows for quick iteration and seeing changes reflected in the LibreOffice UI.
+
+### Running in Developer Mode
+
+To run the extension from your local Git repository and test changes efficiently:
+
+1. **Clone the Repository (if not already done):**
+   - Clone the Localwriter repository to your local machine if you haven't already:
+     ```
+     git clone https://github.com/balis-john/localwriter.git
+     cd localwriter
+     ```
+
+2. **Register the Extension Temporarily:**
+   - Use the `unopkg` tool to register the extension directly from your repository folder. This avoids the need to package the extension as an `.oxt` file during development.
+   - Run the following command, replacing `/path/to/localwriter/` with the path to your cloned repository:
+     ```
+     unopkg add /path/to/localwriter/
+     ```
+   - On Linux, `unopkg` is often located at `/usr/lib/libreoffice/program/unopkg`. Adjust the command if needed:
+     ```
+     /usr/lib/libreoffice/program/unopkg add /path/to/localwriter/
+     ```
+
+3. **Restart LibreOffice:**
+   - Close and reopen LibreOffice Writer or Calc. You should see the "localwriter" menu with options like "Extend Selection", "Edit Selection", and "Settings" in the menu bar.
+
+4. **Make and Test Changes:**
+   - Edit the source files (e.g., `main.py`) directly in your repository folder using your preferred editor.
+   - After making changes, restart LibreOffice to reload the updated code. Test the functionality and UI elements (dialogs, menu actions) directly in LibreOffice.
+   - Note: Restarting is often necessary for Python script changes to take effect, as LibreOffice caches modules.
+
+5. **Commit Changes to Git:**
+   - Since you're working directly in your Git repository, commit your changes as needed:
+     ```
+     git add main.py
+     git commit -m "Updated extension logic for ExtendSelection"
+     ```
+
+6. **Unregister the Extension (Optional):**
+   - If you need to remove the temporary registration, use:
+     ```
+     unopkg remove org.extension.sample
+     ```
+   - Replace `org.extension.sample` with the identifier from `description.xml` if different.
+
+This approach ensures you can see the full extension behavior (including menu integration and UI dialogs) while making changes directly in your Git repository, avoiding the need to repeatedly package or copy files.
 
 ## Contributing
 
