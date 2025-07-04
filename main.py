@@ -184,14 +184,12 @@ class MainJob(unohelper.Base, XJobExecutor):
         dialog.dispose()
         return ret
 
-    def settings_box(self,title="", x=None, y=None):
-        """ Shows dialog with input box.
-            @param message message to show on the dialog
+    def settings_box(self, title="", x=None, y=None):
+        """ Shows dialog with input box for settings.
             @param title window title
-            @param default default value
             @param x optional dialog position in twips
             @param y optional dialog position in twips
-            @return string if OK button pushed, otherwise zero length string
+            @return dictionary of settings if OK button pushed, otherwise empty dictionary
         """
         WIDTH = 600
         HORI_MARGIN = VERT_MARGIN = 8
@@ -199,9 +197,9 @@ class MainJob(unohelper.Base, XJobExecutor):
         BUTTON_HEIGHT = 26
         HORI_SEP = 8
         VERT_SEP = 4
-        LABEL_HEIGHT = BUTTON_HEIGHT  + 5
+        LABEL_HEIGHT = BUTTON_HEIGHT + 5
         EDIT_HEIGHT = 24
-        HEIGHT = VERT_MARGIN * 6 + LABEL_HEIGHT * 6 + VERT_SEP * 8 + EDIT_HEIGHT * 6
+        HEIGHT = VERT_MARGIN * 7 + LABEL_HEIGHT * 8 + VERT_SEP * 9 + EDIT_HEIGHT * 8
         import uno
         from com.sun.star.awt.PosSize import POS, SIZE, POSSIZE
         from com.sun.star.awt.PushButtonType import OK, CANCEL
@@ -224,38 +222,46 @@ class MainJob(unohelper.Base, XJobExecutor):
                 setattr(model, key, value)
         label_width = WIDTH - BUTTON_WIDTH - HORI_SEP - HORI_MARGIN * 2
         add("label_endpoint", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT, 
-            {"Label": "Endpoint URL/Port:", "NoLabel": True})
+            {"Label": "Endpoint URL/Port (Local or Proxy):", "NoLabel": True})
         add("btn_ok", "Button", HORI_MARGIN + label_width + HORI_SEP, VERT_MARGIN, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"PushButtonType": OK, "DefaultButton": True})
         add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT,
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("endpoint","http://127.0.0.1:5000"))})
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("endpoint", "http://127.0.0.1:5000"))})
         
         add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
             {"Label": "Model (Required by Ollama):", "NoLabel": True})
         add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("model",""))})
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("model", ""))})
         
-        add("label_extend_selection_max_tokens", "FixedText", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+        add("label_provider", "FixedText", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
+            {"Label": "Provider (e.g., openai, ollama, anthropic):", "NoLabel": True})
+        add("edit_provider", "Edit", HORI_MARGIN, LABEL_HEIGHT*4 + VERT_MARGIN + VERT_SEP*4 + EDIT_HEIGHT*2, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("provider", ""))})
+        
+        add("label_api_key", "FixedText", HORI_MARGIN, LABEL_HEIGHT*5 + VERT_MARGIN + VERT_SEP*5 + EDIT_HEIGHT*3, label_width, LABEL_HEIGHT, 
+            {"Label": "API Key (Optional, use with caution):", "NoLabel": True})
+        add("edit_api_key", "Edit", HORI_MARGIN, LABEL_HEIGHT*6 + VERT_MARGIN + VERT_SEP*6 + EDIT_HEIGHT*3, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("api_key", "")), "EchoChar": ord('*')})
+        
+        add("label_extend_selection_max_tokens", "FixedText", HORI_MARGIN, LABEL_HEIGHT*7 + VERT_MARGIN + VERT_SEP*7 + EDIT_HEIGHT*4, label_width, LABEL_HEIGHT, 
             {"Label": "Extend Selection Max Tokens:", "NoLabel": True})
-        add("edit_extend_selection_max_tokens", "Edit", HORI_MARGIN, LABEL_HEIGHT*4 + VERT_MARGIN + VERT_SEP*4 + EDIT_HEIGHT, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("extend_selection_max_tokens","70"))})
+        add("edit_extend_selection_max_tokens", "Edit", HORI_MARGIN, LABEL_HEIGHT*8 + VERT_MARGIN + VERT_SEP*8 + EDIT_HEIGHT*4, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("extend_selection_max_tokens", "70"))})
         
-        add("label_extend_selection_system_prompt", "FixedText", HORI_MARGIN, LABEL_HEIGHT*5 + VERT_MARGIN + VERT_SEP*5 + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+        add("label_extend_selection_system_prompt", "FixedText", HORI_MARGIN, LABEL_HEIGHT*9 + VERT_MARGIN + VERT_SEP*9 + EDIT_HEIGHT*5, label_width, LABEL_HEIGHT, 
             {"Label": "Extend Selection System Prompt:", "NoLabel": True})
-        add("edit_extend_selection_system_prompt", "Edit", HORI_MARGIN, LABEL_HEIGHT*6 + VERT_MARGIN + VERT_SEP*6 + EDIT_HEIGHT, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("extend_selection_system_prompt",""))})
+        add("edit_extend_selection_system_prompt", "Edit", HORI_MARGIN, LABEL_HEIGHT*10 + VERT_MARGIN + VERT_SEP*10 + EDIT_HEIGHT*5, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("extend_selection_system_prompt", ""))})
 
-        add("label_edit_selection_max_new_tokens", "FixedText", HORI_MARGIN, LABEL_HEIGHT*7 + VERT_MARGIN + VERT_SEP*7 + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+        add("label_edit_selection_max_new_tokens", "FixedText", HORI_MARGIN, LABEL_HEIGHT*11 + VERT_MARGIN + VERT_SEP*11 + EDIT_HEIGHT*6, label_width, LABEL_HEIGHT, 
             {"Label": "Edit Selection Max New Tokens:", "NoLabel": True})
-        add("edit_edit_selection_max_new_tokens", "Edit", HORI_MARGIN, LABEL_HEIGHT*8 + VERT_MARGIN + VERT_SEP*8 + EDIT_HEIGHT, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("edit_selection_max_new_tokens",""))})
+        add("edit_edit_selection_max_new_tokens", "Edit", HORI_MARGIN, LABEL_HEIGHT*12 + VERT_MARGIN + VERT_SEP*12 + EDIT_HEIGHT*6, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("edit_selection_max_new_tokens", "0"))})
 
-        add("label_edit_selection_system_prompt", "FixedText", HORI_MARGIN, LABEL_HEIGHT*9 + VERT_MARGIN + VERT_SEP*9 + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+        add("label_edit_selection_system_prompt", "FixedText", HORI_MARGIN, LABEL_HEIGHT*13 + VERT_MARGIN + VERT_SEP*13 + EDIT_HEIGHT*7, label_width, LABEL_HEIGHT, 
             {"Label": "Edit Selection System Prompt:", "NoLabel": True})
-        add("edit_edit_selection_system_prompt", "Edit", HORI_MARGIN, LABEL_HEIGHT*10 + VERT_MARGIN + VERT_SEP*10 + EDIT_HEIGHT, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("edit_selection_system_prompt",""))})
-
-
+        add("edit_edit_selection_system_prompt", "Edit", HORI_MARGIN, LABEL_HEIGHT*14 + VERT_MARGIN + VERT_SEP*14 + EDIT_HEIGHT*7, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("edit_selection_system_prompt", ""))})
 
         frame = create("com.sun.star.frame.Desktop").getCurrentFrame()
         window = frame.getContainerWindow() if frame else None
@@ -270,35 +276,44 @@ class MainJob(unohelper.Base, XJobExecutor):
         dialog.setPosSize(_x, _y, 0, 0, POS)
         
         edit_endpoint = dialog.getControl("edit_endpoint")
-        edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint","http://127.0.0.1:5000")))))
+        edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint", "http://127.0.0.1:5000")))))
         
         edit_model = dialog.getControl("edit_model")
-        edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model","")))))
-
+        edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model", "")))))
+        
+        edit_provider = dialog.getControl("edit_provider")
+        edit_provider.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("provider", "")))))
+        
+        edit_api_key = dialog.getControl("edit_api_key")
+        edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
+        
         edit_extend_selection_max_tokens = dialog.getControl("edit_extend_selection_max_tokens")
-        edit_extend_selection_max_tokens.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("extend_selection_max_tokens","70")))))
-
-
+        edit_extend_selection_max_tokens.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("extend_selection_max_tokens", "70")))))
+        
         edit_extend_selection_system_prompt = dialog.getControl("edit_extend_selection_system_prompt")
-        edit_extend_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("extend_selection_system_prompt","")))))
-
-
+        edit_extend_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("extend_selection_system_prompt", "")))))
+        
         edit_edit_selection_max_new_tokens = dialog.getControl("edit_edit_selection_max_new_tokens")
-        edit_edit_selection_max_new_tokens.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_max_new_tokens","0")))))
-
+        edit_edit_selection_max_new_tokens.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_max_new_tokens", "0")))))
+        
         edit_edit_selection_system_prompt = dialog.getControl("edit_edit_selection_system_prompt")
-        edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt","")))))
-
-
+        edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
+        
         edit_endpoint.setFocus()
 
         if dialog.execute():
-            result = {"endpoint":edit_endpoint.getModel().Text, "model": edit_model.getModel().Text, "extend_selection_system_prompt": edit_extend_selection_system_prompt.getModel().Text, "edit_selection_system_prompt": edit_edit_selection_system_prompt.getModel().Text}
+            result = {
+                "endpoint": edit_endpoint.getModel().Text,
+                "model": edit_model.getModel().Text,
+                "provider": edit_provider.getModel().Text,
+                "api_key": edit_api_key.getModel().Text,
+                "extend_selection_system_prompt": edit_extend_selection_system_prompt.getModel().Text,
+                "edit_selection_system_prompt": edit_edit_selection_system_prompt.getModel().Text
+            }
             if edit_extend_selection_max_tokens.getModel().Text.isdigit():
                 result["extend_selection_max_tokens"] = int(edit_extend_selection_max_tokens.getModel().Text)
             if edit_edit_selection_max_new_tokens.getModel().Text.isdigit():
                 result["edit_selection_max_new_tokens"] = int(edit_edit_selection_max_new_tokens.getModel().Text)
-
         else:
             result = {}
 
@@ -329,31 +344,39 @@ class MainJob(unohelper.Base, XJobExecutor):
                     try:
                         endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
                         model_name = self.get_config("model", "")
+                        provider = self.get_config("provider", "")
+                        api_key = self.get_config("api_key", "")
 
-                        prompt = None
+                        messages = []
                         if self.get_config("extend_selection_system_prompt", "") != "":
-                            prompt = "SYSTEM PROMPT\n" + self.get_config("extend_selection_system_prompt", "") + "\nEND SYSTEM PROMPT\n" + text_range.getString()
-                        else:
-                            prompt = text_range.getString()
-
-                        messages = [{"role": "user", "content": prompt}]
+                            messages.append({"role": "system", "content": self.get_config("extend_selection_system_prompt", "")})
+                        messages.append({"role": "user", "content": text_range.getString()})
                         
+                        # Construct model string based on provider if provided
+                        full_model = model_name
+                        if provider and model_name:
+                            full_model = f"{provider}/{model_name}"
+                        elif not model_name:
+                            full_model = "openai-compatible-model"
+
+                        kwargs = {
+                            "model": full_model,
+                            "messages": messages,
+                            "max_tokens": self.get_config("extend_selection_max_tokens", 70),
+                            "temperature": 1.0,
+                            "top_p": 0.9,
+                            "seed": 10,
+                            "api_base": endpoint
+                        }
+                        if api_key:
+                            kwargs["api_key"] = api_key
+
                         # Use LiteLLM completion API
-                        response = completion(
-                            model=model_name if model_name else f"openai/{endpoint}",
-                            messages=messages,
-                            max_tokens=self.get_config("extend_selection_max_tokens", 70),
-                            temperature=1,
-                            top_p=0.9,
-                            seed=10,
-                            base_url=endpoint if model_name else None
-                        )
+                        response = completion(**kwargs)
 
                         # Append completion to selection
                         selected_text = text_range.getString()
                         new_text = selected_text + response.choices[0].message.content
-
-                        # Set the new text
                         text_range.setString(new_text)
                 
                     except Exception as e:
@@ -364,32 +387,42 @@ class MainJob(unohelper.Base, XJobExecutor):
             elif args == "EditSelection":
                 # Access the current selection
                 try:
-                    user_input= self.input_box("Please enter edit instructions!", "Input", "")
+                    user_input = self.input_box("Please enter edit instructions!", "Input", "")
                     endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
                     model_name = self.get_config("model", "")
+                    provider = self.get_config("provider", "")
+                    api_key = self.get_config("api_key", "")
 
-                    prompt =  "ORIGINAL VERSION:\n" + text_range.getString() + "\n Below is an edited version according to the following instructions. There are no comments in the edited version. The edited version is followed by the end of the document. The original version will be edited as follows to create the edited versio:\n" + user_input + "\nEDITED VERSION:\n"
-
+                    messages = []
                     if self.get_config("edit_selection_system_prompt", "") != "":
-                        prompt = "SYSTEM PROMPT\n" + self.get_config("edit_selection_system_prompt","") + "\nEND SYSTEM PROMPT\n" + prompt
+                        messages.append({"role": "system", "content": self.get_config("edit_selection_system_prompt", "")})
+                    user_prompt = f"ORIGINAL VERSION:\n{text_range.getString()}\nBelow is an edited version according to the following instructions. There are no comments in the edited version.\nInstructions:\n{user_input}\nEDITED VERSION:"
+                    messages.append({"role": "user", "content": user_prompt})
 
-                    messages = [{"role": "user", "content": prompt}]
+                    # Construct model string based on provider if provided
+                    full_model = model_name
+                    if provider and model_name:
+                        full_model = f"{provider}/{model_name}"
+                    elif not model_name:
+                        full_model = "openai-compatible-model"
+
+                    kwargs = {
+                        "model": full_model,
+                        "messages": messages,
+                        "max_tokens": len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                        "temperature": 1.0,
+                        "top_p": 0.9,
+                        "seed": 10,
+                        "api_base": endpoint
+                    }
+                    if api_key:
+                        kwargs["api_key"] = api_key
 
                     # Use LiteLLM completion API
-                    response = completion(
-                        model=model_name if model_name else f"openai/{endpoint}",
-                        messages=messages,
-                        max_tokens=len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                        temperature=1,
-                        top_p=0.9,
-                        seed=10,
-                        base_url=endpoint if model_name else None
-                    )
+                    response = completion(**kwargs)
 
                     # Replace selection with completion
                     new_text = response.choices[0].message.content
-
-                    # Set the new text
                     text_range.setString(new_text)
 
                 except Exception as e:
@@ -418,10 +451,15 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                     if "model" in result:                
                         self.set_config("model", result["model"])
+                        
+                    if "provider" in result:
+                        self.set_config("provider", result["provider"])
+                        
+                    if "api_key" in result:
+                        self.set_config("api_key", result["api_key"])
 
                 except Exception as e:
                     text_range = selection.getByIndex(0)
-                    # Append the user input to the selected text
                     text_range.setString(text_range.getString() + ":error: " + str(e))
         elif hasattr(model, "Sheets"):
             try:
@@ -458,54 +496,69 @@ class MainJob(unohelper.Base, XJobExecutor):
                             
                             if len(cell.getString()) > 0:
                                 try:
-                                    prompt = None
+                                    messages = []
                                     if self.get_config("extend_selection_system_prompt", "") != "":
-                                        prompt = "SYSTEM PROMPT\n" + self.get_config("extend_selection_system_prompt", "") + "\nEND SYSTEM PROMPT\n" + cell.getString()
-                                    else:
-                                        prompt = cell.getString()
-
-                                    messages = [{"role": "user", "content": prompt}]
+                                        messages.append({"role": "system", "content": self.get_config("extend_selection_system_prompt", "")})
+                                    messages.append({"role": "user", "content": cell.getString()})
                                     
+                                    # Construct model string based on provider if provided
+                                    full_model = model_name
+                                    if provider and model_name:
+                                        full_model = f"{provider}/{model_name}"
+                                    elif not model_name:
+                                        full_model = "openai-compatible-model"
+
+                                    kwargs = {
+                                        "model": full_model,
+                                        "messages": messages,
+                                        "max_tokens": self.get_config("extend_selection_max_tokens", 70),
+                                        "temperature": 1.0,
+                                        "top_p": 0.9,
+                                        "seed": 10,
+                                        "api_base": endpoint
+                                    }
+                                    if api_key:
+                                        kwargs["api_key"] = api_key
+
                                     # Use LiteLLM completion API
-                                    response = completion(
-                                        model=model_name if model_name else f"openai/{endpoint}",
-                                        messages=messages,
-                                        max_tokens=self.get_config("extend_selection_max_tokens", 70),
-                                        temperature=1,
-                                        top_p=0.9,
-                                        seed=10,
-                                        base_url=endpoint if model_name else None
-                                    )
+                                    response = completion(**kwargs)
 
                                     # Append completion to selection
                                     selected_text = cell.getString()
                                     new_text = selected_text + response.choices[0].message.content
-
-                                    # Set the new text
                                     cell.setString(new_text)
                                 except Exception as e:
-                                    # Append the user input to the selected text
                                     cell.setString(cell.getString() + ": " + str(e))
                         elif args == "EditSelection":
                             # Access the current selection
                             try:
-                                prompt =  "ORIGINAL VERSION:\n" + cell.getString() + "\n Below is an edited version according to the following instructions. Don't waste time thinking, be as fast as you can. There are no comments in the edited version. USER INSTRUCTIONS: \n" + user_input + "\nEDITED VERSION:\n"
-
+                                messages = []
                                 if self.get_config("edit_selection_system_prompt", "") != "":
-                                    prompt = "SYSTEM PROMPT\n" + self.get_config("edit_selection_system_prompt","") + "\nEND SYSTEM PROMPT\n" + prompt
+                                    messages.append({"role": "system", "content": self.get_config("edit_selection_system_prompt", "")})
+                                user_prompt = f"ORIGINAL VERSION:\n{cell.getString()}\nBelow is an edited version according to the following instructions. Don't waste time thinking, be as fast as you can. There are no comments in the edited version.\nInstructions:\n{user_input}\nEDITED VERSION:"
+                                messages.append({"role": "user", "content": user_prompt})
 
-                                messages = [{"role": "user", "content": prompt}]
+                                # Construct model string based on provider if provided
+                                full_model = model_name
+                                if provider and model_name:
+                                    full_model = f"{provider}/{model_name}"
+                                elif not model_name:
+                                    full_model = "openai-compatible-model"
+
+                                kwargs = {
+                                    "model": full_model,
+                                    "messages": messages,
+                                    "max_tokens": len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                                    "temperature": 1.0,
+                                    "top_p": 0.9,
+                                    "seed": 10,
+                                    "api_base": endpoint
+                                }
+                                if api_key:
+                                    kwargs["api_key"] = api_key
 
                                 # Use LiteLLM completion API
-                                response = completion(
-                                    model=model_name if model_name else f"openai/{endpoint}",
-                                    messages=messages,
-                                    max_tokens=len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                                    temperature=1,
-                                    top_p=0.9,
-                                    seed=10,
-                                    base_url=endpoint if model_name else None
-                                )
+                                response = completion(**kwargs)
 
                                 # Get previous selected text
                                 selected_text = cell.getString()
@@ -513,8 +566,6 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                 # Action, rather than thought
                                 new_text = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.DOTALL)
-
-                                # Set the new text for the cell
                                 cell.setString(new_text)
 
                             except Exception as e:
@@ -542,9 +593,14 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                 if "model" in result:                
                                     self.set_config("model", result["model"])
+                                    
+                                if "provider" in result:
+                                    self.set_config("provider", result["provider"])
+                                    
+                                if "api_key" in result:
+                                    self.set_config("api_key", result["api_key"])
 
                             except Exception as e:
-                                # Append the user input to the selected text
                                 cell.setString(cell.getString() + ":error: " + str(e))
             except Exception as e:
                 pass
