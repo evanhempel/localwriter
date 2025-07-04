@@ -341,8 +341,8 @@ class MainJob(unohelper.Base, XJobExecutor):
                     kwargs = {
                         "model": full_model,
                         "messages": [{"role": "user", "content": "Hello, are you working?"}],
-                        "max_tokens": 10,
-                        "temperature": 0.7
+                        "max_tokens": 10
+                        # Note: May want to add temperature parameter later for test calls
                     }
                     # Only include api_base if endpoint is not empty
                     if endpoint:
@@ -437,10 +437,8 @@ class MainJob(unohelper.Base, XJobExecutor):
                         kwargs = {
                             "model": full_model,
                             "messages": messages,
-                            "max_tokens": self.get_config("extend_selection_max_tokens", 70),
-                            "temperature": 1.0,
-                            "top_p": 0.9,
-                            "seed": 10
+                            "max_tokens": self.get_config("extend_selection_max_tokens", 70)
+                            # Note: May want to add temperature/top_p/seed parameters later for finer control
                         }
                         # Only include api_base if endpoint is not empty
                         if endpoint:
@@ -490,10 +488,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     kwargs = {
                         "model": full_model,
                         "messages": messages,
-                        "max_tokens": len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                        "temperature": 1.0,
-                        "top_p": 0.9,
-                        "seed": 10
+                        "max_tokens": len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
                     }
                     # Only include api_base if endpoint is not empty
                     if endpoint:
@@ -600,10 +595,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     kwargs = {
                                         "model": full_model,
                                         "messages": messages,
-                                        "max_tokens": self.get_config("extend_selection_max_tokens", 70),
-                                        "temperature": 1.0,
-                                        "top_p": 0.9,
-                                        "seed": 10
+                                        "max_tokens": self.get_config("extend_selection_max_tokens", 70)
                                     }
                                     # Only include api_base if endpoint is not empty
                                     if endpoint:
@@ -644,10 +636,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                                 kwargs = {
                                     "model": full_model,
                                     "messages": messages,
-                                    "max_tokens": len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                                    "temperature": 1.0,
-                                    "top_p": 0.9,
-                                    "seed": 10
+                                    "max_tokens": len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
                                 }
                                 # Only include api_base if endpoint is not empty
                                 if endpoint:
