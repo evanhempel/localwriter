@@ -54,7 +54,37 @@ class MainJob(unohelper.Base, XJobExecutor):
                 "com.sun.star.frame.Desktop", self.ctx)
     
 
-    def get_config(self,key,default):
+    def call_completion(self, messages, max_tokens=None, endpoint=None, model_name=None, provider=None, api_key=None):
+        """Make a completion call with standardized parameters"""
+        try:
+            # Construct model string based on provider if provided
+            full_model = model_name or self.get_config("model", "")
+            if provider and full_model:
+                full_model = f"{provider}/{full_model}"
+            elif not full_model:
+                # Default to a generic OpenAI-compatible model with explicit provider
+                full_model = "openai/gpt-3.5-turbo"
+                if provider:
+                    full_model = f"{provider}/gpt-3.5-turbo"
+
+            kwargs = {
+                "model": full_model,
+                "messages": messages,
+                "max_tokens": max_tokens or self.get_config("extend_selection_max_tokens", 70)
+            }
+            # Only include api_base if endpoint is not empty
+            endpoint = endpoint or self.get_config("endpoint", "http://127.0.0.1:5000")
+            if endpoint:
+                kwargs["api_base"] = endpoint
+            api_key = api_key or self.get_config("api_key", "")
+            if api_key:
+                kwargs["api_key"] = api_key
+
+            return completion(**kwargs)
+        except Exception as e:
+            raise Exception(f"Completion error: {str(e)}")
+
+    def get_config(self, key, default):
   
         name_file ="localwriter.json"
         #path_settings = create_instance('com.sun.star.util.PathSettings')
@@ -338,29 +368,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if provider:
                             full_model = f"{provider}/gpt-3.5-turbo"
 
-                    kwargs = {
-                        "model": full_model,
-                        "messages": [{"role": "user", "content": "Hello, are you working?"}],
-                        "max_tokens": 10
-                        # Note: May want to add temperature parameter later for test calls
-                    }
-                    # Only include api_base if endpoint is not empty
-                    if endpoint:
-                        kwargs["api_base"] = endpoint
-                    if api_key:
-                        kwargs["api_key"] = api_key
-
-                    # Example args for xai/grok-3-latest:
-                    #kwargs = {
-                    #        'model': "xai/grok-3-latest",
-                    #        'messages': [ {
-                    #            'role': 'user',
-                    #            'content': 'Say hello.'
-                    #            } ],
-                    #        'api_key': api_key
-                    #        }
-                    print("Args: " + repr(kwargs))
-                    response = completion(**kwargs)
+                    response = self.call_completion(
+                        messages=[{"role": "user", "content": "Hello, are you working?"}],
+                        max_tokens=10,
+                        endpoint=endpoint,
+                        model_name=model_name,
+                        provider=provider,
+                        api_key=api_key
+                    )
                     self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
                     self.result_ctrl.setText("Failed: " + str(e))
@@ -434,20 +449,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                             if provider:
                                 full_model = f"{provider}/gpt-3.5-turbo"
 
-                        kwargs = {
-                            "model": full_model,
-                            "messages": messages,
-                            "max_tokens": self.get_config("extend_selection_max_tokens", 70)
-                            # Note: May want to add temperature/top_p/seed parameters later for finer control
-                        }
-                        # Only include api_base if endpoint is not empty
-                        if endpoint:
-                            kwargs["api_base"] = endpoint
-                        if api_key:
-                            kwargs["api_key"] = api_key
-
-                        # Use LiteLLM completion API
-                        response = completion(**kwargs)
+                        response = self.call_completion(
+                            messages=messages,
+                            max_tokens=self.get_config("extend_selection_max_tokens", 70),
+                            endpoint=endpoint,
+                            model_name=model_name,
+                            provider=provider,
+                            api_key=api_key
+                        )
 
                         # Append completion to selection
                         selected_text = text_range.getString()
@@ -485,19 +494,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if provider:
                             full_model = f"{provider}/gpt-3.5-turbo"
 
-                    kwargs = {
-                        "model": full_model,
-                        "messages": messages,
-                        "max_tokens": len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
-                    }
-                    # Only include api_base if endpoint is not empty
-                    if endpoint:
-                        kwargs["api_base"] = endpoint
-                    if api_key:
-                        kwargs["api_key"] = api_key
-
-                    # Use LiteLLM completion API
-                    response = completion(**kwargs)
+                    response = self.call_completion(
+                        messages=messages,
+                        max_tokens=len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                        endpoint=endpoint,
+                        model_name=model_name,
+                        provider=provider,
+                        api_key=api_key
+                    )
 
                     # Replace selection with completion
                     new_text = response.choices[0].message.content
@@ -592,19 +596,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                                         if provider:
                                             full_model = f"{provider}/gpt-3.5-turbo"
 
-                                    kwargs = {
-                                        "model": full_model,
-                                        "messages": messages,
-                                        "max_tokens": self.get_config("extend_selection_max_tokens", 70)
-                                    }
-                                    # Only include api_base if endpoint is not empty
-                                    if endpoint:
-                                        kwargs["api_base"] = endpoint
-                                    if api_key:
-                                        kwargs["api_key"] = api_key
-
-                                    # Use LiteLLM completion API
-                                    response = completion(**kwargs)
+                                    response = self.call_completion(
+                                        messages=messages,
+                                        max_tokens=self.get_config("extend_selection_max_tokens", 70),
+                                        endpoint=endpoint,
+                                        model_name=model_name,
+                                        provider=provider,
+                                        api_key=api_key
+                                    )
 
                                     # Append completion to selection
                                     selected_text = cell.getString()
@@ -633,19 +632,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     if provider:
                                         full_model = f"{provider}/gpt-3.5-turbo"
 
-                                kwargs = {
-                                    "model": full_model,
-                                    "messages": messages,
-                                    "max_tokens": len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
-                                }
-                                # Only include api_base if endpoint is not empty
-                                if endpoint:
-                                    kwargs["api_base"] = endpoint
-                                if api_key:
-                                    kwargs["api_key"] = api_key
-
-                                # Use LiteLLM completion API
-                                response = completion(**kwargs)
+                                response = self.call_completion(
+                                    messages=messages,
+                                    max_tokens=len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                                    endpoint=endpoint,
+                                    model_name=model_name,
+                                    provider=provider,
+                                    api_key=api_key
+                                )
 
                                 # Get previous selected text
                                 selected_text = cell.getString()
