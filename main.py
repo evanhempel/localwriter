@@ -342,15 +342,15 @@ class MainJob(unohelper.Base, XJobExecutor):
                         "model": full_model,
                         "messages": [{"role": "user", "content": "Hello, are you working?"}],
                         "max_tokens": 10,
-                        "temperature": 0.7,
-                        "api_base": endpoint
+                        "temperature": 0.7
                     }
+                    # Only include api_base if endpoint is not empty
+                    if endpoint:
+                        kwargs["api_base"] = endpoint
                     if api_key:
                         kwargs["api_key"] = api_key
 
-                    #AI: the comment below shows what args need to look like for success with xai
-                    #AI: the biggest difference I believe is that we shouldn't pass api_base when the field in settings is empty
-                    #AI! update all completion calls to correct this issue
+                    # Example args for xai/grok-3-latest:
                     #kwargs = {
                     #        'model': "xai/grok-3-latest",
                     #        'messages': [ {
@@ -440,9 +440,11 @@ class MainJob(unohelper.Base, XJobExecutor):
                             "max_tokens": self.get_config("extend_selection_max_tokens", 70),
                             "temperature": 1.0,
                             "top_p": 0.9,
-                            "seed": 10,
-                            "api_base": endpoint
+                            "seed": 10
                         }
+                        # Only include api_base if endpoint is not empty
+                        if endpoint:
+                            kwargs["api_base"] = endpoint
                         if api_key:
                             kwargs["api_key"] = api_key
 
@@ -491,9 +493,11 @@ class MainJob(unohelper.Base, XJobExecutor):
                         "max_tokens": len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
                         "temperature": 1.0,
                         "top_p": 0.9,
-                        "seed": 10,
-                        "api_base": endpoint
+                        "seed": 10
                     }
+                    # Only include api_base if endpoint is not empty
+                    if endpoint:
+                        kwargs["api_base"] = endpoint
                     if api_key:
                         kwargs["api_key"] = api_key
 
@@ -599,9 +603,11 @@ class MainJob(unohelper.Base, XJobExecutor):
                                         "max_tokens": self.get_config("extend_selection_max_tokens", 70),
                                         "temperature": 1.0,
                                         "top_p": 0.9,
-                                        "seed": 10,
-                                        "api_base": endpoint
+                                        "seed": 10
                                     }
+                                    # Only include api_base if endpoint is not empty
+                                    if endpoint:
+                                        kwargs["api_base"] = endpoint
                                     if api_key:
                                         kwargs["api_key"] = api_key
 
@@ -641,9 +647,11 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     "max_tokens": len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
                                     "temperature": 1.0,
                                     "top_p": 0.9,
-                                    "seed": 10,
-                                    "api_base": endpoint
+                                    "seed": 10
                                 }
+                                # Only include api_base if endpoint is not empty
+                                if endpoint:
+                                    kwargs["api_base"] = endpoint
                                 if api_key:
                                     kwargs["api_key"] = api_key
 
