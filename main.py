@@ -222,7 +222,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                 setattr(model, key, value)
         label_width = WIDTH - BUTTON_WIDTH - HORI_SEP - HORI_MARGIN * 2
         add("label_endpoint", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT, 
-            {"Label": "Endpoint URL/Port (Local or Proxy):", "NoLabel": True})
+            {"Label": "Endpoint URL/Port (Local or Proxy, e.g., https://api.x.ai/v1/chat/completions for Grok):", "NoLabel": True})
         add("btn_ok", "Button", HORI_MARGIN + label_width + HORI_SEP, VERT_MARGIN, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"PushButtonType": OK, "DefaultButton": True})
         add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT,
