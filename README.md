@@ -4,7 +4,7 @@ Consider donating to support development: https://ko-fi.com/johnbalis
 
 ## About
 
-This is a LibreOffice Writer extension that enables inline generative editing with local inference. It's compatible with language models supported by `text-generation-webui` and `ollama`.
+This is a LibreOffice Writer extension that enables inline generative editing with local inference. It's compatible with language models supported by `text-generation-webui` and `ollama`. Starting from version 0.0.8, it uses `LiteLLM` for model interaction, providing a unified interface to various model backends.
 
 ## Table of Contents
 
@@ -81,6 +81,8 @@ In the settings, you can configure:
 *   Maximum number of additional tokens for "Extend Selection."
 *   Maximum number of additional tokens (above the number of letters in the original selection) for "Edit Selection."
 *   Custom "system prompts" for both "Extend Selection" and "Edit Selection." These prompts are prepended to the selection before sending it to the language model.  For example, you can use a sample of your writing to guide the model's style.
+*   Endpoint URL/Port for connecting to the backend model runner.
+*   Model name (required for Ollama and some other backends).
 
 ## Local Development
 
@@ -97,7 +99,15 @@ To run the extension from your local Git repository and test changes efficiently
      cd localwriter
      ```
 
-2. **Register the Extension Temporarily:**
+2. **Vendoring LiteLLM for Development (Optional):**
+   - If you are working on a version that uses LiteLLM, you need to vendor the library and its dependencies into the `lib/` directory:
+     ```
+     mkdir -p lib
+     pip install litellm -t lib
+     ```
+   - Ensure all dependencies are included in `lib/` to avoid import issues in LibreOffice's Python environment.
+
+3. **Register the Extension Temporarily:**
    - Use the `unopkg` tool to register the extension directly from your repository folder. This avoids the need to package the extension as an `.oxt` file during development.
    - Run the following command, replacing `/path/to/localwriter/` with the path to your cloned repository:
      ```
@@ -108,22 +118,22 @@ To run the extension from your local Git repository and test changes efficiently
      /usr/lib/libreoffice/program/unopkg add /path/to/localwriter/
      ```
 
-3. **Restart LibreOffice:**
+4. **Restart LibreOffice:**
    - Close and reopen LibreOffice Writer or Calc. You should see the "localwriter" menu with options like "Extend Selection", "Edit Selection", and "Settings" in the menu bar.
 
-4. **Make and Test Changes:**
+5. **Make and Test Changes:**
    - Edit the source files (e.g., `main.py`) directly in your repository folder using your preferred editor.
    - After making changes, restart LibreOffice to reload the updated code. Test the functionality and UI elements (dialogs, menu actions) directly in LibreOffice.
    - Note: Restarting is often necessary for Python script changes to take effect, as LibreOffice caches modules.
 
-5. **Commit Changes to Git:**
+6. **Commit Changes to Git:**
    - Since you're working directly in your Git repository, commit your changes as needed:
      ```
      git add main.py
      git commit -m "Updated extension logic for ExtendSelection"
      ```
 
-6. **Unregister the Extension (Optional):**
+7. **Unregister the Extension (Optional):**
    - If you need to remove the temporary registration, use:
      ```
      unopkg remove org.extension.sample
@@ -149,12 +159,19 @@ zip -r localwriter.oxt \
   main.py \
   META-INF \
   registration \
-  README.md
+  README.md \
+  lib
 ````
 
 This will create the file `localwriter.oxt` which you can open with libreoffice to install the localwriter extension. You can also change the file extension to .zip and manually unzip the extension file, if you want to inspect a localwriter `.oxt` file yourself. It is all human-readable, since python is an interpreted language. 
 
-
+**Note on Vendoring LiteLLM for Distribution:**
+- Before building the `.oxt` file for distribution, ensure the `lib/` directory contains the vendored `LiteLLM` library and its dependencies. You can do this by running:
+  ```
+  mkdir -p lib
+  pip install litellm -t lib
+  ```
+- This ensures that the extension is self-contained and works in environments without external Python package access.
 
 ## License 
 

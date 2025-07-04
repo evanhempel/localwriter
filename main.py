@@ -11,6 +11,15 @@ import os
 import logging
 import re
 
+# Import LiteLLM (to be vendored in lib/)
+try:
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
+    from litellm import completion
+except ImportError:
+    # Fallback or error handling if LiteLLM is not available
+    def completion(*args, **kwargs):
+        raise Exception("LiteLLM library not found. Please ensure it is installed in the lib/ directory.")
+
 from com.sun.star.beans import PropertyValue
 from com.sun.star.container import XNamed
 
@@ -318,13 +327,8 @@ class MainJob(unohelper.Base, XJobExecutor):
                     # Get the first range of the selection
                     #text_range = selection.getByIndex(0)
                     try:
-
-                        url = self.get_config("endpoint", "http://127.0.0.1:5000") + "/v1/completions" 
-                        
-                        
-                        headers = {
-                            'Content-Type': 'application/json'
-                        }
+                        endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
+                        model_name = self.get_config("model", "")
 
                         prompt = None
                         if self.get_config("extend_selection_system_prompt", "") != "":
@@ -332,35 +336,22 @@ class MainJob(unohelper.Base, XJobExecutor):
                         else:
                             prompt = text_range.getString()
 
-                        data = {
-                            'prompt': prompt,
-                            'max_tokens': self.get_config("extend_selection_max_tokens", 70),
-                            'temperature': 1,
-                            'top_p': 0.9,
-                            'seed': 10
-                        }
-
-                        model = self.get_config("model", "")
-                        if model != "":
-                            data["model"] = model
-
-
-                        # Convert data to JSON format
-                        json_data = json.dumps(data).encode('utf-8')
-
-                        # Create a request object with the URL, data, and headers
-                        request = urllib.request.Request(url, data=json_data, headers=headers, method='POST')
-
-                        # Send the request and read the response
-                        with urllib.request.urlopen(request) as response:
-                            response_data = response.read()
-
-                        # If needed, decode the response data
-                        response = json.loads(response_data.decode('utf-8'))
+                        messages = [{"role": "user", "content": prompt}]
+                        
+                        # Use LiteLLM completion API
+                        response = completion(
+                            model=model_name if model_name else f"openai/{endpoint}",
+                            messages=messages,
+                            max_tokens=self.get_config("extend_selection_max_tokens", 70),
+                            temperature=1,
+                            top_p=0.9,
+                            seed=10,
+                            base_url=endpoint if model_name else None
+                        )
 
                         # Append completion to selection
                         selected_text = text_range.getString()
-                        new_text = selected_text + response["choices"][0]["text"]
+                        new_text = selected_text + response.choices[0].message.content
 
                         # Set the new text
                         text_range.setString(new_text)
@@ -374,48 +365,29 @@ class MainJob(unohelper.Base, XJobExecutor):
                 # Access the current selection
                 try:
                     user_input= self.input_box("Please enter edit instructions!", "Input", "")
-                    #text_range.setString(text_range.getString() + ": " + user_input)
-                    url = self.get_config("endpoint", "http://127.0.0.1:5000") + "/v1/completions" 
-
-                    headers = {
-                        'Content-Type': 'application/json'
-                    }
+                    endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
+                    model_name = self.get_config("model", "")
 
                     prompt =  "ORIGINAL VERSION:\n" + text_range.getString() + "\n Below is an edited version according to the following instructions. There are no comments in the edited version. The edited version is followed by the end of the document. The original version will be edited as follows to create the edited versio:\n" + user_input + "\nEDITED VERSION:\n"
 
                     if self.get_config("edit_selection_system_prompt", "") != "":
                         prompt = "SYSTEM PROMPT\n" + self.get_config("edit_selection_system_prompt","") + "\nEND SYSTEM PROMPT\n" + prompt
 
+                    messages = [{"role": "user", "content": prompt}]
 
-                    data = {
-                        'prompt':prompt,
-                        'max_tokens': len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0), # this is a bit hacky, it's actually number of characters + max new tokens, so even if max new tokens is zero, max_tokens will often end up with more tokens than the selected text actually contains.
-                        'temperature': 1,
-                        'top_p': 0.9,
-                        'seed': 10
-                    }
+                    # Use LiteLLM completion API
+                    response = completion(
+                        model=model_name if model_name else f"openai/{endpoint}",
+                        messages=messages,
+                        max_tokens=len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                        temperature=1,
+                        top_p=0.9,
+                        seed=10,
+                        base_url=endpoint if model_name else None
+                    )
 
-                    model = self.get_config("model", "")
-                    if model != "":
-                        data["model"] = model
-
-                    # Convert data to JSON format
-                    json_data = json.dumps(data).encode('utf-8')
-
-                    # Create a request object with the URL, data, and headers
-                    request = urllib.request.Request(url, data=json_data, headers=headers, method='POST')
-
-                    # Send the request and read the response
-                    with urllib.request.urlopen(request) as response:
-                        response_data = response.read()
-
-                    # If needed, decode the response data
-                    response = json.loads(response_data.decode('utf-8'))
-
-
-                    # replace selection with completion
-                    selected_text = text_range.getString()
-                    new_text = response["choices"][0]["text"]
+                    # Replace selection with completion
+                    new_text = response.choices[0].message.content
 
                     # Set the new text
                     text_range.setString(new_text)
@@ -427,7 +399,6 @@ class MainJob(unohelper.Base, XJobExecutor):
             
             elif args == "settings":
                 try:
-
                     result = self.settings_box("Settings")
                                     
                     if "extend_selection_max_tokens" in result:
@@ -448,7 +419,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                     if "model" in result:                
                         self.set_config("model", result["model"])
 
-
                 except Exception as e:
                     text_range = selection.getByIndex(0)
                     # Append the user input to the selected text
@@ -456,7 +426,8 @@ class MainJob(unohelper.Base, XJobExecutor):
         elif hasattr(model, "Sheets"):
             try:
                 #text_range.setString(text_range.getString() + ": " + user_input)
-                url = self.get_config("endpoint", "http://127.0.0.1:5000") + "/v1/completions" 
+                endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
+                model_name = self.get_config("model", "")
                 # Get the active sheet
                 sheet = model.CurrentController.ActiveSheet
                 
@@ -487,49 +458,28 @@ class MainJob(unohelper.Base, XJobExecutor):
                             
                             if len(cell.getString()) > 0:
                                 try:
-
-                                    url = self.get_config("endpoint", "http://127.0.0.1:5000") + "/v1/completions" 
-                                    
-                                    
-                                    headers = {
-                                        'Content-Type': 'application/json'
-                                    }
-
                                     prompt = None
                                     if self.get_config("extend_selection_system_prompt", "") != "":
                                         prompt = "SYSTEM PROMPT\n" + self.get_config("extend_selection_system_prompt", "") + "\nEND SYSTEM PROMPT\n" + cell.getString()
                                     else:
                                         prompt = cell.getString()
 
-                                    data = {
-                                        'prompt': prompt,
-                                        'max_tokens': self.get_config("extend_selection_max_tokens", 70),
-                                        'temperature': 1,
-                                        'top_p': 0.9,
-                                        'seed': 10
-                                    }
-
-                                    model = self.get_config("model", "")
-                                    if model != "":
-                                        data["model"] = model
-
-
-                                    # Convert data to JSON format
-                                    json_data = json.dumps(data).encode('utf-8')
-
-                                    # Create a request object with the URL, data, and headers
-                                    request = urllib.request.Request(url, data=json_data, headers=headers, method='POST')
-
-                                    # Send the request and read the response
-                                    with urllib.request.urlopen(request) as response:
-                                        response_data = response.read()
-
-                                    # If needed, decode the response data
-                                    response = json.loads(response_data.decode('utf-8'))
+                                    messages = [{"role": "user", "content": prompt}]
+                                    
+                                    # Use LiteLLM completion API
+                                    response = completion(
+                                        model=model_name if model_name else f"openai/{endpoint}",
+                                        messages=messages,
+                                        max_tokens=self.get_config("extend_selection_max_tokens", 70),
+                                        temperature=1,
+                                        top_p=0.9,
+                                        seed=10,
+                                        base_url=endpoint if model_name else None
+                                    )
 
                                     # Append completion to selection
                                     selected_text = cell.getString()
-                                    new_text = selected_text + response["choices"][0]["text"]
+                                    new_text = selected_text + response.choices[0].message.content
 
                                     # Set the new text
                                     cell.setString(new_text)
@@ -539,57 +489,33 @@ class MainJob(unohelper.Base, XJobExecutor):
                         elif args == "EditSelection":
                             # Access the current selection
                             try:
-                                #text_range.setString(text_range.getString() + ": " + user_input)
-                                url = self.get_config("endpoint", "http://127.0.0.1:5000") + "/v1/completions" 
-
-                                headers = {
-                                    'Content-Type': 'application/json'
-                                }
-
                                 prompt =  "ORIGINAL VERSION:\n" + cell.getString() + "\n Below is an edited version according to the following instructions. Don't waste time thinking, be as fast as you can. There are no comments in the edited version. USER INSTRUCTIONS: \n" + user_input + "\nEDITED VERSION:\n"
 
                                 if self.get_config("edit_selection_system_prompt", "") != "":
                                     prompt = "SYSTEM PROMPT\n" + self.get_config("edit_selection_system_prompt","") + "\nEND SYSTEM PROMPT\n" + prompt
 
+                                messages = [{"role": "user", "content": prompt}]
 
-                                data = {
-                                    'prompt':prompt,
-                                    'max_tokens': len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0), # this is a bit hacky, it's actually number of characters + max new tokens, so even if max new tokens is zero, max_tokens will often end up with more tokens than the selected text actually contains.
-                                    'temperature': 1,
-                                    'top_p': 0.9,
-                                    'seed': 10
-                                }
+                                # Use LiteLLM completion API
+                                response = completion(
+                                    model=model_name if model_name else f"openai/{endpoint}",
+                                    messages=messages,
+                                    max_tokens=len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
+                                    temperature=1,
+                                    top_p=0.9,
+                                    seed=10,
+                                    base_url=endpoint if model_name else None
+                                )
 
-                                model = self.get_config("model", "")
-                                if model != "":
-                                    data["model"] = model
-
-                                # Convert data to JSON format
-                                json_data = json.dumps(data).encode('utf-8')
-
-                                # Create a request object with the URL, data, and headers
-                                request = urllib.request.Request(url, data=json_data, headers=headers, method='POST')
-
-                                # Send the request and read the response
-                                with urllib.request.urlopen(request) as response:
-                                    response_data = response.read()
-
-                                # If needed, decode the response data
-                                response = json.loads(response_data.decode('utf-8'))
-
-
-                                # get previous selected text
+                                # Get previous selected text
                                 selected_text = cell.getString()
+                                raw_response = response.choices[0].message.content
 
-                    
-                                raw_response = response["choices"][0]["text"]
-
-                                #action, rather than thought
+                                # Action, rather than thought
                                 new_text = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.DOTALL)
 
                                 # Set the new text for the cell
                                 cell.setString(new_text)
-
 
                             except Exception as e:
                                 # Append the user input to the selected text
@@ -597,7 +523,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                         
                         elif args == "settings":
                             try:
-
                                 result = self.settings_box("Settings")
                                                 
                                 if "extend_selection_max_tokens" in result:
@@ -617,7 +542,6 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                 if "model" in result:                
                                     self.set_config("model", result["model"])
-
 
                             except Exception as e:
                                 # Append the user input to the selected text
