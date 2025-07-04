@@ -306,41 +306,53 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         edit_endpoint.setFocus()
 
-        # Add listener for test button
-        def test_connection(event):
-            endpoint = edit_endpoint.getModel().Text
-            model_name = edit_model.getModel().Text
-            provider = edit_provider.getModel().Text
-            api_key = edit_api_key.getModel().Text
-            test_result_label = dialog.getControl("label_test_result")
-            try:
-                # Construct model string based on provider if provided
-                full_model = model_name
-                if provider and model_name:
-                    full_model = f"{provider}/{model_name}"
-                elif not model_name:
-                    full_model = "openai/gpt-3.5-turbo"
-                    if provider:
-                        full_model = f"{provider}/gpt-3.5-turbo"
+        # Add listener for test button using a UNO-compatible ActionListener
+        from com.sun.star.awt import XActionListener
+        class TestConnectionListener(unohelper.Base, XActionListener):
+            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_label):
+                self.endpoint_ctrl = endpoint_ctrl
+                self.model_ctrl = model_ctrl
+                self.provider_ctrl = provider_ctrl
+                self.api_key_ctrl = api_key_ctrl
+                self.result_label = result_label
 
-                kwargs = {
-                    "model": full_model,
-                    "messages": [{"role": "user", "content": "Hello, are you working?"}],
-                    "max_tokens": 10,
-                    "temperature": 0.7,
-                    "api_base": endpoint
-                }
-                if api_key:
-                    kwargs["api_key"] = api_key
+            def disposing(self, source):
+                pass
 
-                response = completion(**kwargs)
-                test_result_label.setText("Success: " + response.choices[0].message.content[:50] + "...")
-            except Exception as e:
-                test_result_label.setText("Failed: " + str(e)[:100] + "...")
-                print(f"Test Connection Error: {str(e)}")
+            def actionPerformed(self, event):
+                endpoint = self.endpoint_ctrl.getModel().Text
+                model_name = self.model_ctrl.getModel().Text
+                provider = self.provider_ctrl.getModel().Text
+                api_key = self.api_key_ctrl.getModel().Text
+                try:
+                    # Construct model string based on provider if provided
+                    full_model = model_name
+                    if provider and model_name:
+                        full_model = f"{provider}/{model_name}"
+                    elif not model_name:
+                        full_model = "openai/gpt-3.5-turbo"
+                        if provider:
+                            full_model = f"{provider}/gpt-3.5-turbo"
+
+                    kwargs = {
+                        "model": full_model,
+                        "messages": [{"role": "user", "content": "Hello, are you working?"}],
+                        "max_tokens": 10,
+                        "temperature": 0.7,
+                        "api_base": endpoint
+                    }
+                    if api_key:
+                        kwargs["api_key"] = api_key
+
+                    response = completion(**kwargs)
+                    self.result_label.setText("Success: " + response.choices[0].message.content[:50] + "...")
+                except Exception as e:
+                    self.result_label.setText("Failed: " + str(e)[:100] + "...")
+                    print(f"Test Connection Error: {str(e)}")
 
         btn_test = dialog.getControl("btn_test")
-        btn_test.addActionListener(test_connection)
+        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("label_test_result"))
+        btn_test.addActionListener(test_listener)
 
         if dialog.execute():
             result = {
