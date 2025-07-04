@@ -515,7 +515,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                         self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
                     if "endpoint" in result and result["endpoint"].startswith("http"):
-                        self.set_config("endpoint", result["endpoint"])
+                        # Ensure endpoint ends with a single slash to match LiteLLM's behavior
+                        endpoint = result["endpoint"].rstrip('/') + '/'
+                        self.set_config("endpoint", endpoint)
 
                     if "model" in result:                
                         self.set_config("model", result["model"])
@@ -666,7 +668,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
                                 if "endpoint" in result and result["endpoint"].startswith("http"):
-                                    self.set_config("endpoint", result["endpoint"])
+                                    # Ensure endpoint ends with a single slash to match LiteLLM's behavior
+                                    endpoint = result["endpoint"].rstrip('/') + '/'
+                                    self.set_config("endpoint", endpoint)
 
                                 if "model" in result:                
                                     self.set_config("model", result["model"])
