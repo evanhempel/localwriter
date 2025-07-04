@@ -348,6 +348,18 @@ class MainJob(unohelper.Base, XJobExecutor):
                     if api_key:
                         kwargs["api_key"] = api_key
 
+                    #AI: the comment below shows what args need to look like for success with xai
+                    #AI: the biggest difference I believe is that we shouldn't pass api_base when the field in settings is empty
+                    #AI! update all completion calls to correct this issue
+                    #kwargs = {
+                    #        'model': "xai/grok-3-latest",
+                    #        'messages': [ {
+                    #            'role': 'user',
+                    #            'content': 'Say hello.'
+                    #            } ],
+                    #        'api_key': api_key
+                    #        }
+                    print("Args: " + repr(kwargs))
                     response = completion(**kwargs)
                     self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
@@ -516,7 +528,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                     if "endpoint" in result and result["endpoint"].startswith("http"):
                         # Ensure endpoint ends with a single slash to match LiteLLM's behavior
-                        endpoint = result["endpoint"].rstrip('/') + '/'
+                        endpoint = result["endpoint"].rstrip('/')
                         self.set_config("endpoint", endpoint)
 
                     if "model" in result:                
@@ -669,7 +681,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                 if "endpoint" in result and result["endpoint"].startswith("http"):
                                     # Ensure endpoint ends with a single slash to match LiteLLM's behavior
-                                    endpoint = result["endpoint"].rstrip('/') + '/'
+                                    endpoint = result["endpoint"].rstrip('/')
                                     self.set_config("endpoint", endpoint)
 
                                 if "model" in result:                
