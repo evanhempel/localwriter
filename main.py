@@ -199,7 +199,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         VERT_SEP = 4
         LABEL_HEIGHT = BUTTON_HEIGHT + 5
         EDIT_HEIGHT = 24
-        HEIGHT = VERT_MARGIN * 7 + LABEL_HEIGHT * 8 + VERT_SEP * 9 + EDIT_HEIGHT * 8
+        HEIGHT = VERT_MARGIN * 7 + LABEL_HEIGHT * 8 + VERT_SEP * 9 + EDIT_HEIGHT * 8 + 350
         import uno
         from com.sun.star.awt.PosSize import POS, SIZE, POSSIZE
         from com.sun.star.awt.PushButtonType import OK, CANCEL
