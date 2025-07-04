@@ -265,8 +265,8 @@ class MainJob(unohelper.Base, XJobExecutor):
 
         add("btn_test", "Button", HORI_MARGIN, LABEL_HEIGHT*15 + VERT_MARGIN + VERT_SEP*15 + EDIT_HEIGHT*8, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"Label": "Test Connection"})
-        add("label_test_result", "FixedText", HORI_MARGIN + BUTTON_WIDTH + HORI_SEP, LABEL_HEIGHT*15 + VERT_MARGIN + VERT_SEP*15 + EDIT_HEIGHT*8, 
-                label_width - BUTTON_WIDTH - HORI_SEP, LABEL_HEIGHT, {"Label": "Test result will appear here", "NoLabel": True})
+        add("test_result", "Edit", HORI_MARGIN + BUTTON_WIDTH + HORI_SEP, LABEL_HEIGHT*15 + VERT_MARGIN + VERT_SEP*15 + EDIT_HEIGHT*8, 
+                label_width - BUTTON_WIDTH - HORI_SEP, EDIT_HEIGHT * 5, {"Text": "Test result will appear here", "MultiLine": True, "ReadOnly": True})
 
         frame = create("com.sun.star.frame.Desktop").getCurrentFrame()
         window = frame.getContainerWindow() if frame else None
@@ -309,12 +309,12 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
         class TestConnectionListener(unohelper.Base, XActionListener):
-            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_label):
+            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl):
                 self.endpoint_ctrl = endpoint_ctrl
                 self.model_ctrl = model_ctrl
                 self.provider_ctrl = provider_ctrl
                 self.api_key_ctrl = api_key_ctrl
-                self.result_label = result_label
+                self.result_ctrl = result_ctrl
 
             def disposing(self, source):
                 pass
@@ -325,6 +325,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                 provider = self.provider_ctrl.getModel().Text
                 api_key = self.api_key_ctrl.getModel().Text
                 try:
+                    # Turn on debug for this test call
+                    import litellm
+                    litellm._turn_on_debug()
+
                     # Construct model string based on provider if provided
                     full_model = model_name
                     if provider and model_name:
@@ -345,13 +349,16 @@ class MainJob(unohelper.Base, XJobExecutor):
                         kwargs["api_key"] = api_key
 
                     response = completion(**kwargs)
-                    self.result_label.setText("Success: " + response.choices[0].message.content[:50] + "...")
+                    self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
-                    self.result_label.setText("Failed: " + str(e)[:100] + "...")
+                    self.result_ctrl.setText("Failed: " + str(e))
                     print(f"Test Connection Error: {str(e)}")
+                finally:
+                    # Turn off debug after the test call
+                    litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
-        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("label_test_result"))
+        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("test_result"))
         btn_test.addActionListener(test_listener)
 
         if dialog.execute():
