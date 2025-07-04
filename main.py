@@ -199,7 +199,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         VERT_SEP = 4
         LABEL_HEIGHT = BUTTON_HEIGHT + 5
         EDIT_HEIGHT = 24
-        HEIGHT = VERT_MARGIN * 7 + LABEL_HEIGHT * 8 + VERT_SEP * 9 + EDIT_HEIGHT * 8 + 350
+        HEIGHT = VERT_MARGIN * 8 + LABEL_HEIGHT * 9 + VERT_SEP * 10 + EDIT_HEIGHT * 8 + 350
         import uno
         from com.sun.star.awt.PosSize import POS, SIZE, POSSIZE
         from com.sun.star.awt.PushButtonType import OK, CANCEL
@@ -263,6 +263,11 @@ class MainJob(unohelper.Base, XJobExecutor):
         add("edit_edit_selection_system_prompt", "Edit", HORI_MARGIN, LABEL_HEIGHT*14 + VERT_MARGIN + VERT_SEP*14 + EDIT_HEIGHT*7, 
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("edit_selection_system_prompt", ""))})
 
+        add("btn_test", "Button", HORI_MARGIN, LABEL_HEIGHT*15 + VERT_MARGIN + VERT_SEP*15 + EDIT_HEIGHT*8, 
+                BUTTON_WIDTH, BUTTON_HEIGHT, {"Label": "Test Connection"})
+        add("label_test_result", "FixedText", HORI_MARGIN + BUTTON_WIDTH + HORI_SEP, LABEL_HEIGHT*15 + VERT_MARGIN + VERT_SEP*15 + EDIT_HEIGHT*8, 
+                label_width - BUTTON_WIDTH - HORI_SEP, LABEL_HEIGHT, {"Label": "Test result will appear here", "NoLabel": True})
+
         frame = create("com.sun.star.frame.Desktop").getCurrentFrame()
         window = frame.getContainerWindow() if frame else None
         dialog.createPeer(create("com.sun.star.awt.Toolkit"), window)
@@ -300,6 +305,42 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
         
         edit_endpoint.setFocus()
+
+        # Add listener for test button
+        def test_connection(event):
+            endpoint = edit_endpoint.getModel().Text
+            model_name = edit_model.getModel().Text
+            provider = edit_provider.getModel().Text
+            api_key = edit_api_key.getModel().Text
+            test_result_label = dialog.getControl("label_test_result")
+            try:
+                # Construct model string based on provider if provided
+                full_model = model_name
+                if provider and model_name:
+                    full_model = f"{provider}/{model_name}"
+                elif not model_name:
+                    full_model = "openai/gpt-3.5-turbo"
+                    if provider:
+                        full_model = f"{provider}/gpt-3.5-turbo"
+
+                kwargs = {
+                    "model": full_model,
+                    "messages": [{"role": "user", "content": "Hello, are you working?"}],
+                    "max_tokens": 10,
+                    "temperature": 0.7,
+                    "api_base": endpoint
+                }
+                if api_key:
+                    kwargs["api_key"] = api_key
+
+                response = completion(**kwargs)
+                test_result_label.setText("Success: " + response.choices[0].message.content[:50] + "...")
+            except Exception as e:
+                test_result_label.setText("Failed: " + str(e)[:100] + "...")
+                print(f"Test Connection Error: {str(e)}")
+
+        btn_test = dialog.getControl("btn_test")
+        btn_test.addActionListener(test_connection)
 
         if dialog.execute():
             result = {
@@ -357,7 +398,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if provider and model_name:
                             full_model = f"{provider}/{model_name}"
                         elif not model_name:
-                            full_model = "openai-compatible-model"
+                            # Default to a generic OpenAI-compatible model with explicit provider
+                            full_model = "openai/gpt-3.5-turbo"
+                            if provider:
+                                full_model = f"{provider}/gpt-3.5-turbo"
 
                         kwargs = {
                             "model": full_model,
@@ -381,8 +425,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                 
                     except Exception as e:
                         text_range = selection.getByIndex(0)
-                        # Append the user input to the selected text
-                        text_range.setString(text_range.getString() + ": " + str(e))
+                        error_msg = f":error: {str(e)}"
+                        print(f"Error in ExtendSelection: {error_msg}")
+                        text_range.setString(text_range.getString() + error_msg)
 
             elif args == "EditSelection":
                 # Access the current selection
@@ -404,7 +449,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                     if provider and model_name:
                         full_model = f"{provider}/{model_name}"
                     elif not model_name:
-                        full_model = "openai-compatible-model"
+                        # Default to a generic OpenAI-compatible model with explicit provider
+                        full_model = "openai/gpt-3.5-turbo"
+                        if provider:
+                            full_model = f"{provider}/gpt-3.5-turbo"
 
                     kwargs = {
                         "model": full_model,
@@ -427,8 +475,9 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                 except Exception as e:
                     text_range = selection.getByIndex(0)
-                    # Append the user input to the selected text
-                    text_range.setString(text_range.getString() + ": " + str(e))
+                    error_msg = f":error: {str(e)}"
+                    print(f"Error in EditSelection: {error_msg}")
+                    text_range.setString(text_range.getString() + error_msg)
             
             elif args == "settings":
                 try:
@@ -506,7 +555,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     if provider and model_name:
                                         full_model = f"{provider}/{model_name}"
                                     elif not model_name:
-                                        full_model = "openai-compatible-model"
+                                        # Default to a generic OpenAI-compatible model with explicit provider
+                                        full_model = "openai/gpt-3.5-turbo"
+                                        if provider:
+                                            full_model = f"{provider}/gpt-3.5-turbo"
 
                                     kwargs = {
                                         "model": full_model,
@@ -528,7 +580,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     new_text = selected_text + response.choices[0].message.content
                                     cell.setString(new_text)
                                 except Exception as e:
-                                    cell.setString(cell.getString() + ": " + str(e))
+                                    error_msg = f":error: {str(e)}"
+                                    print(f"Error in ExtendSelection (Calc): {error_msg}")
+                                    cell.setString(cell.getString() + error_msg)
                         elif args == "EditSelection":
                             # Access the current selection
                             try:
@@ -543,7 +597,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                                 if provider and model_name:
                                     full_model = f"{provider}/{model_name}"
                                 elif not model_name:
-                                    full_model = "openai-compatible-model"
+                                    # Default to a generic OpenAI-compatible model with explicit provider
+                                    full_model = "openai/gpt-3.5-turbo"
+                                    if provider:
+                                        full_model = f"{provider}/gpt-3.5-turbo"
 
                                 kwargs = {
                                     "model": full_model,
@@ -569,8 +626,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                                 cell.setString(new_text)
 
                             except Exception as e:
-                                # Append the user input to the selected text
-                                cell.setString(cell.getString() + ": " + str(e))
+                                error_msg = f":error: {str(e)}"
+                                print(f"Error in EditSelection (Calc): {error_msg}")
+                                cell.setString(cell.getString() + error_msg)
                         
                         elif args == "settings":
                             try:
