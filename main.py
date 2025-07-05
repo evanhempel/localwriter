@@ -354,34 +354,40 @@ class MainJob(unohelper.Base, XJobExecutor):
                     except Exception as e:
                         print(f"Error checking provider config: {str(e)}")
 
-                    #AI! we have duplicated code here for api_key_ctrl and endpoint_ctrl.  Extract it into a local helper function that takes a widget and a help text string
+                    def update_widget_state(widget, is_required, help_text, example_text=None):
+                        """Helper to update widget state consistently"""
+                        if is_required:
+                            widget.Model.HelpText = help_text + (f" (e.g. {example_text})" if example_text else "")
+                            widget.Model.BackgroundColor = 0xFFFFFF
+                        else:
+                            widget.Model.HelpText = help_text
+                            widget.Model.BackgroundColor = 0xEEEEEE
+                        widget.setEditable(is_required)
+                        widget.setEnable(is_required)
+
                     # Update api_key state
                     if not needs_key:
                         print(f"Provider '{provider}' does NOT require API key")
-                        self.api_key_ctrl.Model.HelpText = "This provider doesn't require an API key"
-                        self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
+                        update_widget_state(
+                            self.api_key_ctrl,
+                            False,
+                            "This provider doesn't require an API key"
+                        )
                     else:
                         print(f"Provider '{provider}' requires API key")
-                        self.api_key_ctrl.Model.HelpText = "API key required"
-                        self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
-
-                    # Update api_key field state
-                    self.api_key_ctrl.setEditable(needs_key)
-                    self.api_key_ctrl.setEnable(needs_key)
+                        update_widget_state(
+                            self.api_key_ctrl,
+                            True,
+                            "API key required"
+                        )
                         
-                       
                     # Update endpoint field
-                    if needs_endpoint:
-                        self.endpoint_ctrl.Model.HelpText = f"Required endpoint (e.g. {api_base})"
-                        self.endpoint_ctrl.Model.BackgroundColor = 0xFFFFFF
-                    else:
-                        self.endpoint_ctrl.Model.HelpText = "Leave blank to use provider's default endpoint"
-                        self.endpoint_ctrl.Model.BackgroundColor = 0xEEEEEE
-                    
-                    # Set endpoint field state
-                    self.endpoint_ctrl.setEditable(needs_endpoint)
-                    self.endpoint_ctrl.setEnable(needs_endpoint)
-                    #AI: end duplicated code is here
+                    update_widget_state(
+                        self.endpoint_ctrl,
+                        needs_endpoint,
+                        "Leave blank to use provider's default endpoint",
+                        api_base if needs_endpoint else None
+                    )
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
