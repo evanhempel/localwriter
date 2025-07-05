@@ -425,46 +425,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
             def disposing(self, event):
                 pass
-
-        # Get all dialog controls first
-        combo_provider = dialog.getControl("combo_provider")
-        api_key_label = dialog.getControl("label_api_key")
-        edit_api_key = dialog.getControl("edit_api_key")
-        edit_endpoint = dialog.getControl("edit_endpoint")
-        endpoint_label = dialog.getControl("label_endpoint")
-        
-        # Get known providers from LiteLLM
-        try:
-            providers = sorted(litellm.provider_list)
-        except:
-            providers = ["openai", "ollama", "anthropic", "cohere", "huggingface", "replicate"]
-        
-        current_provider = str(self.get_config("provider", ""))
-        combo_provider.addItems(providers, 0)
-        if current_provider in providers:
-            combo_provider.Model.Text = current_provider
-
-        # Set up provider change listener
-        # Get all needed controls first
-        combo_model = dialog.getControl("combo_model")
-        
-        provider_listener = ProviderChangeListener(
-            edit_api_key, 
-            api_key_label,
-            edit_endpoint,
-            endpoint_label,
-            combo_model
-        )
-        combo_provider.addItemListener(provider_listener)
-        
-        # Initialize state based on current provider
-        if current_provider:
-            # Create proper ItemEvent structure
-            item_event = uno.createUnoStruct("com.sun.star.awt.ItemEvent")
-            item_event.Source = combo_provider
-            item_event.Selected = 0  # Default selection index
-            provider_listener.itemStateChanged(item_event)
-        
+ 
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
         
@@ -485,7 +446,33 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         edit_edit_selection_system_prompt = dialog.getControl("edit_edit_selection_system_prompt")
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
+ 
+        # Get known providers from LiteLLM
+        providers = sorted(litellm.provider_list)
         
+        current_provider = str(self.get_config("provider", ""))
+        combo_provider.addItems(providers, 0)
+        if current_provider in providers:
+            combo_provider.Model.Text = current_provider
+
+        # Set up provider change listener
+        provider_listener = ProviderChangeListener(
+            edit_api_key, 
+            api_key_label,
+            edit_endpoint,
+            endpoint_label,
+            combo_model
+        )
+        combo_provider.addItemListener(provider_listener)
+        
+        # Initialize state based on current provider
+        if current_provider:
+            # Create proper ItemEvent structure
+            item_event = uno.createUnoStruct("com.sun.star.awt.ItemEvent")
+            item_event.Source = combo_provider
+            item_event.Selected = 0  # Default selection index
+            provider_listener.itemStateChanged(item_event)
+              
         combo_provider.setFocus()
 
         # Add listener for test button using a UNO-compatible ActionListener
