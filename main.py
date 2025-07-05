@@ -311,11 +311,9 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Add provider change listener
         class ProviderChangeListener(unohelper.Base, XItemListener):
-            def __init__(self, api_key_ctrl, api_key_label, endpoint_ctrl, endpoint_label, model_ctrl):
+            def __init__(self, api_key_ctrl, endpoint_ctrl, model_ctrl):
                 self.api_key_ctrl = api_key_ctrl
-                self.api_key_label = api_key_label
                 self.endpoint_ctrl = endpoint_ctrl
-                self.endpoint_label = endpoint_label
                 self.model_ctrl = model_ctrl
                 self.api_key_ctrl.Model.HelpText = "Leave blank if not required for your provider"
                 self.endpoint_ctrl.Model.HelpText = "Leave blank to use default endpoint"
@@ -409,7 +407,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                         try:
                             models = provider_config.get_models(**get_model_args)
                             if models:
-                                self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount()) #AI! we get an error from this call: Error fetching models: removeItems
+                                self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount())
                                 self.model_ctrl.addItems(sorted(models), 0)
                                 self.model_ctrl.Model.HelpText = f"Available models for {provider}"
                             else:
@@ -426,6 +424,9 @@ class MainJob(unohelper.Base, XJobExecutor):
             def disposing(self, event):
                 pass
  
+        combo_provider = dialog.getControl("combo_provider")
+        # No need for selection setting on ComboBox since we set the Text property
+
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
         
@@ -458,9 +459,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Set up provider change listener
         provider_listener = ProviderChangeListener(
             edit_api_key, 
-            api_key_label,
             edit_endpoint,
-            endpoint_label,
             combo_model
         )
         combo_provider.addItemListener(provider_listener)
@@ -478,14 +477,13 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
         class TestConnectionListener(unohelper.Base, XActionListener):
-            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl, main_job, api_key_label):
+            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl, main_job):
                 self.endpoint_ctrl = endpoint_ctrl
                 self.model_ctrl = model_ctrl
                 self.provider_ctrl = provider_ctrl
                 self.api_key_ctrl = api_key_ctrl
                 self.result_ctrl = result_ctrl
                 self.main_job = main_job
-                self.api_key_label = api_key_label
 
             def disposing(self, source):
                 pass
@@ -520,8 +518,7 @@ class MainJob(unohelper.Base, XJobExecutor):
             combo_provider,
             edit_api_key,
             dialog.getControl("test_result"),
-            self,
-            api_key_label
+            self
         )
         btn_test.addActionListener(test_listener)
 
