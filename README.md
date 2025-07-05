@@ -109,14 +109,15 @@ To run the extension from your local Git repository and test changes efficiently
 
 3. **Register the Extension Temporarily:**
    - Use the `unopkg` tool to register the extension directly from your repository folder. This avoids the need to package the extension as an `.oxt` file during development.
-   - Run the following command, replacing `/path/to/localwriter/` with the path to your cloned repository:
+   - For development, you'll need to remove and re-add the extension each time you make changes:
      ```
-     unopkg add /path/to/localwriter/
+     unopkg remove org.extension.sample; yes yes | unopkg add . > /dev/null
      ```
    - On Linux, `unopkg` is often located at `/usr/lib/libreoffice/program/unopkg`. Adjust the command if needed:
      ```
-     /usr/lib/libreoffice/program/unopkg add /path/to/localwriter/
+     /usr/lib/libreoffice/program/unopkg remove org.extension.sample; yes yes | /usr/lib/libreoffice/program/unopkg add . > /dev/null
      ```
+   - Alternatively, use the provided Makefile (see below) which automates this process.
 
 4. **Restart LibreOffice:**
    - Close and reopen LibreOffice Writer or Calc. You should see the "localwriter" menu with options like "Extend Selection", "Edit Selection", and "Settings" in the menu bar.
