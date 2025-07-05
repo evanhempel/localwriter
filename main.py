@@ -333,27 +333,31 @@ class MainJob(unohelper.Base, XJobExecutor):
                 try:
                     print(f"Checking provider '{provider}' requirements...")
                     
-                    # Default to requiring both key and endpoint
+                    # Initialize requirements
                     needs_key = True
-                    needs_endpoint = True
+                    needs_endpoint = False
                     
-                    # Check for known local providers
-                    local_providers = ["ollama", "openai-compatible", "vllm"]
-                    if provider.lower() in local_providers:
-                        needs_endpoint = True
-                        self.endpoint_ctrl.Model.HelpText = "Required for local provider (e.g. http://localhost:11434)"
-                        self.endpoint_ctrl.Model.BackgroundColor = 0xFFFFFF
-                    else:
-                        needs_endpoint = False
-                        self.endpoint_ctrl.Model.HelpText = "Leave blank to use provider's default endpoint"
-                        self.endpoint_ctrl.Model.BackgroundColor = 0xEEEEEE
-                    
-                    # Check API key requirement
                     try:
+                        # Get provider config
                         provider_config = litellm.utils.ProviderConfigManager.get_provider_model_info(
                             model=None,
                             provider=litellm.utils.LlmProviders(provider))
+                        
+                        # Check API key requirement
                         needs_key = provider_config.get_api_key('needed') == 'needed'
+                        
+                        # Check if endpoint is needed (local/self-hosted)
+                        api_base = provider_config.get_api_base()
+                        if api_base:
+                            needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
+                        
+                        # Update endpoint field
+                        if needs_endpoint:
+                            self.endpoint_ctrl.Model.HelpText = f"Required endpoint (e.g. {api_base})"
+                            self.endpoint_ctrl.Model.BackgroundColor = 0xFFFFFF
+                        else:
+                            self.endpoint_ctrl.Model.HelpText = "Leave blank to use provider's default endpoint"
+                            self.endpoint_ctrl.Model.BackgroundColor = 0xEEEEEE
                     except:
                         needs_key = True  # Fallback to requiring key if check fails
 
