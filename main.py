@@ -5,7 +5,7 @@ import json
 import urllib.request
 import urllib.parse
 from com.sun.star.task import XJobExecutor
-from com.sun.star.awt import MessageBoxButtons as MSG_BUTTONS
+from com.sun.star.awt import MessageBoxButtons as MSG_BUTTONS, XItemListener
 import uno
 import os 
 import logging
