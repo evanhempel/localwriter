@@ -489,10 +489,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                 pass
 
             def actionPerformed(self, event):
-                endpoint = self.endpoint_ctrl.getModel().Text
                 model_name = self.model_ctrl.getModel().Text
                 provider = self.provider_ctrl.getModel().Text
-                api_key = self.api_key_ctrl.getModel().Text
+                
+                # Only use endpoint if the control is enabled
+                endpoint = self.endpoint_ctrl.getModel().Text if self.endpoint_ctrl.isEnabled() else None
+                
+                # Only use API key if the control is enabled
+                api_key = self.api_key_ctrl.getModel().Text if self.api_key_ctrl.isEnabled() else None
                 try:
                     # Turn on debug for this test call
                     litellm._turn_on_debug()
