@@ -14,7 +14,7 @@ import re
 # Import LiteLLM (to be vendored in lib/)
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
-    from litellm import completion
+    from litellm import completion, check_valid_key
 except ImportError:
     # Fallback or error handling if LiteLLM is not available
     def completion(*args, **kwargs):
@@ -386,7 +386,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
-        test_listener = TestConnectionListener(edit_endpoint, edit_model, combo_provider, edit_api_key, dialog.getControl("test_result"), self)
+        test_listener = TestConnectionListener(edit_endpoint, edit_model, combo_provider, edit_api_key, dialog.getControl("test_result"), self, api_key_label)
         btn_test.addActionListener(test_listener)
 
         if dialog.execute():
