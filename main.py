@@ -328,19 +328,15 @@ class MainJob(unohelper.Base, XJobExecutor):
                 self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
                 
                 try:
-                    # Turn on debug logging
-                    litellm._turn_on_debug()
                     print(f"Checking if provider '{provider}' requires API key...")
                     
-                    # Test with empty key to see if provider requires one
-                    result = check_valid_key(
-                        model=f"{provider}/dummy-model",  # dummy model name  
-                        api_key=""
-                    )
-                    print(f"check_valid_key result for {provider}: {result}")
-                    
-                    if result:
-                        # If check passes with empty key, provider doesn't need one
+                    provider_config = litellm.utils.ProviderConfigManager.get_provider_model_info(
+                            model=None,
+                            provider=litellm.utils.LlmProviders(provider))
+
+                    needs_key = provider_config.get_api_key('needed') == 'needed'
+
+                    if not needs_key:
                         print(f"Provider '{provider}' does NOT require API key")
                         self.api_key_ctrl.setEditable(False)
                         self.api_key_ctrl.setEnable(False)
@@ -348,6 +344,13 @@ class MainJob(unohelper.Base, XJobExecutor):
                         self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
                     else:
                         print(f"Provider '{provider}' requires API key")
+
+                    #AI! configure the endpoint GUI field in a similar manner to how we toggle the API key field (see above). The line below tells us if we need the endpoint
+                    #needs_endpoint = 'localhost' in provider_config.get_api_base() or '127.0.0.1' in provider_config.get_api_base()
+
+                    # Turn on debug logging - get_models() may do a request
+                    #litellm._turn_on_debug()
+                    #models_for_provider = provider_config.get_models()  # NOTE: this isn't valid until api_key or endpoint has been specified depending on the provider
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
