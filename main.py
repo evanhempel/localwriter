@@ -320,30 +320,27 @@ class MainJob(unohelper.Base, XJobExecutor):
                 if not provider:
                     return
                 
+                # Default to requiring key until we know otherwise
+                self.api_key_ctrl.setEditable(True)
+                self.api_key_ctrl.setEnable(True)
+                self.api_key_ctrl.Model.HelpText = "API key (required for most providers)"
+                self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
+                
                 try:
                     # Test with empty key to see if provider requires one
-                    requires_key = not check_valid_key(
+                    if check_valid_key(
                         model=f"{provider}/dummy-model",  # dummy model name
                         api_key=""
-                    )
-                    
-                    self.api_key_ctrl.setEditable(requires_key)
-                    self.api_key_ctrl.setEnable(requires_key)
-                    self.api_key_ctrl.Model.HelpText = (
-                        "API key required for this provider" if requires_key 
-                        else "This provider typically doesn't require an API key"
-                    )
-                    
-                    # Visual indication
-                    self.api_key_ctrl.Model.BackgroundColor = (
-                        0xEEEEEE if not requires_key else 0xFFFFFF  # Grey if not needed
-                    )
+                    ):
+                        # If check passes with empty key, provider doesn't need one
+                        self.api_key_ctrl.setEditable(False)
+                        self.api_key_ctrl.setEnable(False)
+                        self.api_key_ctrl.Model.HelpText = "This provider doesn't require an API key"
+                        self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
                     
                 except Exception as e:
-                    # Fallback - assume key might be needed
                     print(f"Error checking key requirement: {str(e)}")
-                    self.api_key_ctrl.setEditable(True)
-                    self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
+                    # Keep defaults (key required) if check fails
 
             def disposing(self, event):
                 pass
