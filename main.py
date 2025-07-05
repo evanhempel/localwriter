@@ -380,9 +380,12 @@ class MainJob(unohelper.Base, XJobExecutor):
             def disposing(self, event):
                 pass
 
+        # Get all dialog controls first
         combo_provider = dialog.getControl("combo_provider")
         api_key_label = dialog.getControl("label_api_key")
         edit_api_key = dialog.getControl("edit_api_key")
+        edit_endpoint = dialog.getControl("edit_endpoint")
+        endpoint_label = dialog.getControl("label_endpoint")
         
         # Get known providers from LiteLLM
         try:
@@ -400,7 +403,7 @@ class MainJob(unohelper.Base, XJobExecutor):
             edit_api_key, 
             api_key_label,
             edit_endpoint,
-            dialog.getControl("label_endpoint")
+            endpoint_label
         )
         combo_provider.addItemListener(provider_listener)
         
