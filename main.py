@@ -382,12 +382,21 @@ class MainJob(unohelper.Base, XJobExecutor):
                         )
                         
                     # Update endpoint field
-                    update_widget_state(
-                        self.endpoint_ctrl,
-                        needs_endpoint,
-                        "Leave blank to use provider's default endpoint",
-                        api_base if needs_endpoint else None
-                    )
+                    if needs_endpoint:
+                        print(f"Provider '{provider}' requires custom endpoint")
+                        update_widget_state(
+                            self.endpoint_ctrl,
+                            True,
+                            "Endpoint required (e.g. " + api_base + ")",
+                            api_base
+                        )
+                    else:
+                        print(f"Provider '{provider}' uses default endpoint")
+                        update_widget_state(
+                            self.endpoint_ctrl,
+                            False,
+                            "Uses provider's default endpoint"
+                        )
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
