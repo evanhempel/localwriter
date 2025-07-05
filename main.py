@@ -329,7 +329,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                 try:
                     # Turn on debug logging
                     import litellm
-                    litellm.set_verbose = True
+                    litellm._turn_on_debug()
                     print(f"Checking if provider '{provider}' requires API key...")
                     
                     # Test with empty key to see if provider requires one
@@ -353,7 +353,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     print(f"Error checking key requirement for {provider}: {str(e)}")
                 finally:
                     # Turn off debug logging
-                    litellm.set_verbose = False
+                    litellm._turn_off_debug()
                     # Keep defaults (key required) if check fails
 
             def disposing(self, event):
