@@ -264,8 +264,8 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
             {"Label": "Model (Required by Ollama):", "NoLabel": True})
-        add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("model", ""))})
+        add("combo_model", "ComboBox", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Dropdown": True, "Text": str(self.get_config("model", ""))})
         
         add("label_endpoint", "FixedText", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT*3, label_width, LABEL_HEIGHT, 
             {"Label": "Endpoint URL/Port (Local or Proxy, e.g., https://api.x.ai/v1/chat/completions for Grok):", "NoLabel": True})
@@ -446,14 +446,14 @@ class MainJob(unohelper.Base, XJobExecutor):
 
         # Set up provider change listener
         # Get all needed controls first
-        edit_model = dialog.getControl("edit_model")
+        combo_model = dialog.getControl("combo_model")
         
         provider_listener = ProviderChangeListener(
             edit_api_key, 
             api_key_label,
             edit_endpoint,
             endpoint_label,
-            edit_model
+            combo_model
         )
         combo_provider.addItemListener(provider_listener)
         
@@ -468,8 +468,8 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
         
-        edit_model = dialog.getControl("edit_model")
-        edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model", "")))))
+        combo_model = dialog.getControl("combo_model")
+        # No need for selection setting on ComboBox since we set the Text property
         
         edit_endpoint = dialog.getControl("edit_endpoint")
         edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint", "http://127.0.0.1:5000")))))
@@ -541,7 +541,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         if dialog.execute():
             result = {
                 "endpoint": edit_endpoint.getModel().Text,
-                "model": edit_model.getModel().Text,
+                "model": combo_model.Model.Text,
                 "provider": combo_provider.Model.Text,
                 "api_key": edit_api_key.getModel().Text,
                 "extend_selection_system_prompt": edit_extend_selection_system_prompt.getModel().Text,
