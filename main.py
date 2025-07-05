@@ -534,13 +534,21 @@ class MainJob(unohelper.Base, XJobExecutor):
 
         if dialog.execute():
             result = {
-                "endpoint": edit_endpoint.getModel().Text,
                 "model": combo_model.Model.Text,
                 "provider": combo_provider.Model.Text,
-                "api_key": edit_api_key.getModel().Text,
                 "extend_selection_system_prompt": edit_extend_selection_system_prompt.getModel().Text,
                 "edit_selection_system_prompt": edit_edit_selection_system_prompt.getModel().Text
             }
+            
+            # Only include endpoint if control is enabled
+            if edit_endpoint.isEnabled():
+                result["endpoint"] = edit_endpoint.getModel().Text
+            
+            # Only include API key if control is enabled
+            if edit_api_key.isEnabled():
+                result["api_key"] = edit_api_key.getModel().Text
+            
+            # Handle numeric fields
             if edit_extend_selection_max_tokens.getModel().Text.isdigit():
                 result["extend_selection_max_tokens"] = int(edit_extend_selection_max_tokens.getModel().Text)
             if edit_edit_selection_max_new_tokens.getModel().Text.isdigit():
@@ -747,8 +755,8 @@ class MainJob(unohelper.Base, XJobExecutor):
                                 if "edit_selection_system_prompt" in result:
                                     self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
+                                # Only save endpoint if it exists and starts with http
                                 if "endpoint" in result and result["endpoint"].startswith("http"):
-                                    # Ensure endpoint ends with a single slash to match LiteLLM's behavior
                                     endpoint = result["endpoint"].rstrip('/')
                                     self.set_config("endpoint", endpoint)
 
