@@ -14,30 +14,12 @@ import re
 # Import LiteLLM (to be vendored in lib/)
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
-    from litellm import completion, check_valid_key
     import litellm
 except ImportError:
-    # Fallback or error handling if LiteLLM is not available
-    def completion(*args, **kwargs):
-        raise Exception("LiteLLM library not found. Please ensure it is installed in the lib/ directory.")
+    raise Exception("LiteLLM library not found. Please ensure it is installed in the lib/ directory.")
 
-from com.sun.star.beans import PropertyValue
-from com.sun.star.container import XNamed
-
-
-def log_to_file(message):
-    # Get the user's home directory
-    home_directory = os.path.expanduser('~')
-    
-    # Define the log file path
-    log_file_path = os.path.join(home_directory, 'log.txt')
-    
-    # Set up logging configuration
-    logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
-    
-    # Log the input message
-    logging.info(message)
-
+# Turn on litellm debug for now
+litellm._turn_on_debug()
 
 # The MainJob is a UNO component derived from unohelper.Base class
 # and also the XJobExecutor, the implemented interface
@@ -78,7 +60,7 @@ class MainJob(unohelper.Base, XJobExecutor):
             if api_key:
                 kwargs["api_key"] = api_key
 
-            return completion(**kwargs)
+            return litellm.completion(**kwargs)
         except Exception as e:
             raise Exception(f"Completion error: {str(e)}")
 
@@ -504,9 +486,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                 # Only use API key if the control is enabled
                 api_key = self.api_key_ctrl.getModel().Text if self.api_key_ctrl.isEnabled() else None
                 try:
-                    # Turn on debug for this test call
-                    litellm._turn_on_debug()
-
                     response = self.main_job.call_completion(
                         messages=[{"role": "user", "content": "Hello, are you working?"}],
                         max_tokens=10,
