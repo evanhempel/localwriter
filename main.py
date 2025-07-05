@@ -256,20 +256,20 @@ class MainJob(unohelper.Base, XJobExecutor):
         add("combo_provider", "ComboBox", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN,
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Dropdown": True})
         
-        add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+        add("label_api_key", "FixedText", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
+            {"Label": "API Key (Optional, use with caution):", "NoLabel": True})
+        add("edit_api_key", "Edit", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("api_key", "")), "EchoChar": ord('*')})
+        
+        add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
             {"Label": "Model (Required by Ollama):", "NoLabel": True})
-        add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, 
+        add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, 
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("model", ""))})
         
-        add("label_endpoint", "FixedText", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
+        add("label_endpoint", "FixedText", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT*3, label_width, LABEL_HEIGHT, 
             {"Label": "Endpoint URL/Port (Local or Proxy, e.g., https://api.x.ai/v1/chat/completions for Grok):", "NoLabel": True})
-        add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, 
+        add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT*4 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT*3, 
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("endpoint", "http://127.0.0.1:5000"))})
-        
-        add("label_api_key", "FixedText", HORI_MARGIN, LABEL_HEIGHT*5 + VERT_MARGIN + VERT_SEP*5 + EDIT_HEIGHT*3, label_width, LABEL_HEIGHT, 
-            {"Label": "API Key (Optional, use with caution):", "NoLabel": True})
-        add("edit_api_key", "Edit", HORI_MARGIN, LABEL_HEIGHT*6 + VERT_MARGIN + VERT_SEP*6 + EDIT_HEIGHT*3, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("api_key", "")), "EchoChar": ord('*')})
         
         add("label_extend_selection_max_tokens", "FixedText", HORI_MARGIN, LABEL_HEIGHT*7 + VERT_MARGIN + VERT_SEP*7 + EDIT_HEIGHT*4, label_width, LABEL_HEIGHT, 
             {"Label": "Extend Selection Max Tokens:", "NoLabel": True})
