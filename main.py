@@ -351,6 +351,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if api_base:
                             needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
                         
+                        #AI the code between here
                         # Update endpoint field
                         if needs_endpoint:
                             self.endpoint_ctrl.Model.HelpText = f"Required endpoint (e.g. {api_base})"
@@ -358,6 +359,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                         else:
                             self.endpoint_ctrl.Model.HelpText = "Leave blank to use provider's default endpoint"
                             self.endpoint_ctrl.Model.BackgroundColor = 0xEEEEEE
+                        #AI and here should move outside this try block and go after the api_key_ctrl GUI updates for consistency
                     except:
                         needs_key = True  # Fallback to requiring key if check fails
 
@@ -374,6 +376,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                         self.api_key_ctrl.Model.HelpText = "API key required"
                         self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
                         
+                    #AI! code moves here please
                     # Set endpoint field state
                     self.endpoint_ctrl.setEditable(needs_endpoint)
                     self.endpoint_ctrl.setEnable(needs_endpoint)
