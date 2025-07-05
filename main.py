@@ -407,8 +407,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                         try:
                             models = provider_config.get_models(**get_model_args)
                             if models:
+                                # Strip provider prefix if it matches current provider
+                                prefix = f"{provider}/"
+                                stripped_models = [
+                                    model[len(prefix):] if model.startswith(prefix) else model
+                                    for model in models
+                                ]
                                 self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount())
-                                self.model_ctrl.addItems(sorted(models), 0)
+                                self.model_ctrl.addItems(sorted(stripped_models), 0)
                                 self.model_ctrl.Model.HelpText = f"Available models for {provider}"
                             else:
                                 self.model_ctrl.Model.HelpText = "No models found - check API key/endpoint"
