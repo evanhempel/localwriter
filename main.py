@@ -308,14 +308,14 @@ class MainJob(unohelper.Base, XJobExecutor):
             _y = ps.Height / 2 - HEIGHT / 2
         dialog.setPosSize(_x, _y, 0, 0, POS)
         
-        edit_endpoint = dialog.getControl("edit_endpoint")
-        edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint", "http://127.0.0.1:5000")))))
+        edit_provider = dialog.getControl("edit_provider")
+        edit_provider.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("provider", "")))))
         
         edit_model = dialog.getControl("edit_model")
         edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model", "")))))
         
-        edit_provider = dialog.getControl("edit_provider")
-        edit_provider.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("provider", "")))))
+        edit_endpoint = dialog.getControl("edit_endpoint")
+        edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint", "http://127.0.0.1:5000")))))
         
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
