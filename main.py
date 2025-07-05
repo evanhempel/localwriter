@@ -354,19 +354,22 @@ class MainJob(unohelper.Base, XJobExecutor):
                     except Exception as e:
                         print(f"Error checking provider config: {str(e)}")
 
+                    #AI! we have duplicated code here for api_key_ctrl and endpoint_ctrl.  Extract it into a local helper function that takes a widget and a help text string
+                    # Update api_key state
                     if not needs_key:
                         print(f"Provider '{provider}' does NOT require API key")
-                        self.api_key_ctrl.setEditable(False)
-                        self.api_key_ctrl.setEnable(False)
                         self.api_key_ctrl.Model.HelpText = "This provider doesn't require an API key"
                         self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
                     else:
                         print(f"Provider '{provider}' requires API key")
-                        self.api_key_ctrl.setEditable(True)
-                        self.api_key_ctrl.setEnable(True)
                         self.api_key_ctrl.Model.HelpText = "API key required"
                         self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
+
+                    # Update api_key field state
+                    self.api_key_ctrl.setEditable(needs_key)
+                    self.api_key_ctrl.setEnable(needs_key)
                         
+                       
                     # Update endpoint field
                     if needs_endpoint:
                         self.endpoint_ctrl.Model.HelpText = f"Required endpoint (e.g. {api_base})"
@@ -378,6 +381,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     # Set endpoint field state
                     self.endpoint_ctrl.setEditable(needs_endpoint)
                     self.endpoint_ctrl.setEnable(needs_endpoint)
+                    #AI: end duplicated code is here
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
