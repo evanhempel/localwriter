@@ -43,6 +43,7 @@ class MainJob(unohelper.Base, XJobExecutor):
             get_config_func = self.get_config
         try:
             # Construct model string based on provider if provided
+            provider = provider or get_config_func("provider", "")
             full_model = model_name or get_config_func("model", "")
             if provider and full_model:
                 full_model = f"{provider}/{full_model}"
