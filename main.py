@@ -94,65 +94,49 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Return the value corresponding to the key, or the default value if the key is not found
         return config_data.get(key, default)
 
-    def unset_config(self, key):
-        """Remove a key from the configuration"""
+    def _get_config_path(self):
+        """Get the path to the config file"""
         name_file = "localwriter.json"
-        
         path_settings = self.sm.createInstanceWithContext('com.sun.star.util.PathSettings', self.ctx)
         user_config_path = getattr(path_settings, "UserConfig")
-
+        
         if user_config_path.startswith('file://'):
             user_config_path = str(uno.fileUrlToSystemPath(user_config_path))
+        
+        return os.path.join(user_config_path, name_file)
 
-        config_file_path = os.path.join(user_config_path, name_file)
-
+    def _load_config(self):
+        """Load config data from file, returns empty dict if file doesn't exist"""
+        config_file_path = self._get_config_path()
         if os.path.exists(config_file_path):
             try:
                 with open(config_file_path, 'r') as file:
-                    config_data = json.load(file)
+                    return json.load(file)
             except (IOError, json.JSONDecodeError):
-                return
+                return {}
+        return {}
 
-            if key in config_data:
-                del config_data[key]
-                try:
-                    with open(config_file_path, 'w') as file:
-                        json.dump(config_data, file, indent=4)
-                except IOError as e:
-                    print(f"Error writing to {config_file_path}: {e}")
-
-    def set_config(self, key, value):
-        name_file = "localwriter.json"
-        
-        path_settings = self.sm.createInstanceWithContext('com.sun.star.util.PathSettings', self.ctx)
-        user_config_path = getattr(path_settings, "UserConfig")
-
-        if user_config_path.startswith('file://'):
-            user_config_path = str(uno.fileUrlToSystemPath(user_config_path))
-
-        # Ensure the path ends with the filename
-        config_file_path = os.path.join(user_config_path, name_file)
-
-        # Load existing configuration if the file exists
-        if os.path.exists(config_file_path):
-            try:
-                with open(config_file_path, 'r') as file:
-                    config_data = json.load(file)
-            except (IOError, json.JSONDecodeError):
-                config_data = {}
-        else:
-            config_data = {}
-
-        # Update the configuration with the new key-value pair
-        config_data[key] = value
-
-        # Write the updated configuration back to the file
+    def _save_config(self, config_data):
+        """Save config data to file"""
+        config_file_path = self._get_config_path()
         try:
             with open(config_file_path, 'w') as file:
                 json.dump(config_data, file, indent=4)
         except IOError as e:
-            # Handle potential IO errors (optional)
             print(f"Error writing to {config_file_path}: {e}")
+
+    def unset_config(self, key):
+        """Remove a key from the configuration"""
+        config_data = self._load_config()
+        if key in config_data:
+            del config_data[key]
+            self._save_config(config_data)
+
+    def set_config(self, key, value):
+        """Set a key-value pair in the configuration"""
+        config_data = self._load_config()
+        config_data[key] = value
+        self._save_config(config_data)
 
 
     #retrieved from https://wiki.documentfoundation.org/Macros/General/IO_to_Screen
