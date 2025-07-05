@@ -54,29 +54,26 @@ class MainJob(unohelper.Base, XJobExecutor):
                 "com.sun.star.frame.Desktop", self.ctx)
     
 
-    def call_completion(self, messages, max_tokens=None, endpoint=None, model_name=None, provider=None, api_key=None):
+    def call_completion(self, messages, max_tokens=None, endpoint=None, model_name=None, provider=None, api_key=None, get_config_func=None):
         """Make a completion call with standardized parameters"""
+        if get_config_func is None:
+            get_config_func = self.get_config
         try:
             # Construct model string based on provider if provided
-            full_model = model_name or self.get_config("model", "")
+            full_model = model_name or get_config_func("model", "")
             if provider and full_model:
                 full_model = f"{provider}/{full_model}"
-            elif not full_model:
-                # Default to a generic OpenAI-compatible model with explicit provider
-                full_model = "openai/gpt-3.5-turbo"
-                if provider:
-                    full_model = f"{provider}/gpt-3.5-turbo"
 
             kwargs = {
                 "model": full_model,
                 "messages": messages,
-                "max_tokens": max_tokens or self.get_config("extend_selection_max_tokens", 70)
+                "max_tokens": max_tokens or get_config_func("extend_selection_max_tokens", 70)
             }
             # Only include api_base if endpoint is not empty
-            endpoint = endpoint or self.get_config("endpoint", "http://127.0.0.1:5000")
-            if endpoint:
+            endpoint = endpoint or get_config_func("endpoint", None)
+            if isinstance(endpoint, str) and endpoint.startswith('http'):
                 kwargs["api_base"] = endpoint
-            api_key = api_key or self.get_config("api_key", "")
+            api_key = api_key or get_config_func("api_key", None)
             if api_key:
                 kwargs["api_key"] = api_key
 
@@ -366,7 +363,8 @@ class MainJob(unohelper.Base, XJobExecutor):
                         endpoint=endpoint,
                         model_name=model_name,
                         provider=provider,
-                        api_key=api_key
+                        api_key=api_key,
+                        get_config_func=lambda x,y: '' # disable pulling anything from config since we're testing config values now
                     )
                     self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
@@ -484,7 +482,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                         self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
                     if "endpoint" in result and result["endpoint"].startswith("http"):
-                        # Ensure endpoint ends with a single slash to match LiteLLM's behavior
                         endpoint = result["endpoint"].rstrip('/')
                         self.set_config("endpoint", endpoint)
 
