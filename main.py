@@ -327,19 +327,33 @@ class MainJob(unohelper.Base, XJobExecutor):
                 self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
                 
                 try:
+                    # Turn on debug logging
+                    import litellm
+                    litellm.set_verbose = True
+                    print(f"Checking if provider '{provider}' requires API key...")
+                    
                     # Test with empty key to see if provider requires one
-                    if check_valid_key(
-                        model=f"{provider}/dummy-model",  # dummy model name
+                    result = check_valid_key(
+                        model=f"{provider}/dummy-model",  # dummy model name  
                         api_key=""
-                    ):
+                    )
+                    print(f"check_valid_key result for {provider}: {result}")
+                    
+                    if result:
                         # If check passes with empty key, provider doesn't need one
+                        print(f"Provider '{provider}' does NOT require API key")
                         self.api_key_ctrl.setEditable(False)
                         self.api_key_ctrl.setEnable(False)
                         self.api_key_ctrl.Model.HelpText = "This provider doesn't require an API key"
                         self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
+                    else:
+                        print(f"Provider '{provider}' requires API key")
                     
                 except Exception as e:
-                    print(f"Error checking key requirement: {str(e)}")
+                    print(f"Error checking key requirement for {provider}: {str(e)}")
+                finally:
+                    # Turn off debug logging
+                    litellm.set_verbose = False
                     # Keep defaults (key required) if check fails
 
             def disposing(self, event):
