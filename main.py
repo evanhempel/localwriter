@@ -321,14 +321,14 @@ class MainJob(unohelper.Base, XJobExecutor):
         if current_provider in providers:
             combo_provider.Model.Text = current_provider
         
+        edit_api_key = dialog.getControl("edit_api_key")
+        edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
+        
         edit_model = dialog.getControl("edit_model")
         edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model", "")))))
         
         edit_endpoint = dialog.getControl("edit_endpoint")
         edit_endpoint.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("endpoint", "http://127.0.0.1:5000")))))
-        
-        edit_api_key = dialog.getControl("edit_api_key")
-        edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
         
         edit_extend_selection_max_tokens = dialog.getControl("edit_extend_selection_max_tokens")
         edit_extend_selection_max_tokens.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("extend_selection_max_tokens", "70")))))
