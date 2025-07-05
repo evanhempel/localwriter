@@ -399,13 +399,14 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
         class TestConnectionListener(unohelper.Base, XActionListener):
-            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl, main_job):
+            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl, main_job, api_key_label):
                 self.endpoint_ctrl = endpoint_ctrl
                 self.model_ctrl = model_ctrl
                 self.provider_ctrl = provider_ctrl
                 self.api_key_ctrl = api_key_ctrl
                 self.result_ctrl = result_ctrl
                 self.main_job = main_job
+                self.api_key_label = api_key_label
 
             def disposing(self, source):
                 pass
@@ -438,7 +439,15 @@ class MainJob(unohelper.Base, XJobExecutor):
                     litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
-        test_listener = TestConnectionListener(edit_endpoint, edit_model, combo_provider, edit_api_key, dialog.getControl("test_result"), self, api_key_label)
+        test_listener = TestConnectionListener(
+            edit_endpoint,
+            edit_model, 
+            combo_provider,
+            edit_api_key,
+            dialog.getControl("test_result"),
+            self,
+            api_key_label
+        )
         btn_test.addActionListener(test_listener)
 
         if dialog.execute():
