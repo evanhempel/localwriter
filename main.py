@@ -400,14 +400,16 @@ class MainJob(unohelper.Base, XJobExecutor):
                         )
 
                     # Check if we can fetch available models
-                    has_credentials = (not needs_key or self.api_key_ctrl.getModel().Text) and \
-                                    (not needs_endpoint or self.endpoint_ctrl.getModel().Text)
-                    
-                    if has_credentials:
+                    get_model_args = {}
+                    if needs_key:
+                        get_model_args['api_key'] = self.api_key_ctrl.getModel().Text
+                    if needs_endpoint:
+                        get_model_args['api_base'] = self.endpoint_ctrl.getModel().Text
+                    if len(get_model_args) != 0:
                         try:
-                            models = provider_config.get_models()
+                            models = provider_config.get_models(**get_model_args)
                             if models:
-                                self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount())
+                                self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount()) #AI! we get an error from this call: Error fetching models: removeItems
                                 self.model_ctrl.addItems(sorted(models), 0)
                                 self.model_ctrl.Model.HelpText = f"Available models for {provider}"
                             else:
