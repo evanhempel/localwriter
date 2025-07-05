@@ -529,7 +529,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         btn_test = dialog.getControl("btn_test")
         test_listener = TestConnectionListener(
             edit_endpoint,
-            edit_model, 
+            combo_model, 
             combo_provider,
             edit_api_key,
             dialog.getControl("test_result"),
