@@ -308,8 +308,18 @@ class MainJob(unohelper.Base, XJobExecutor):
             _y = ps.Height / 2 - HEIGHT / 2
         dialog.setPosSize(_x, _y, 0, 0, POS)
         
-        edit_provider = dialog.getControl("edit_provider")
-        edit_provider.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("provider", "")))))
+        combo_provider = dialog.getControl("combo_provider")
+        # Get known providers from LiteLLM
+        try:
+            import litellm
+            providers = sorted(litellm.provider_list)
+        except:
+            providers = ["openai", "ollama", "anthropic", "cohere", "huggingface", "replicate"]
+        
+        current_provider = str(self.get_config("provider", ""))
+        combo_provider.addItems(providers, 0)
+        if current_provider in providers:
+            combo_provider.Model.Text = current_provider
         
         edit_model = dialog.getControl("edit_model")
         edit_model.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("model", "")))))
