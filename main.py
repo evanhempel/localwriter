@@ -460,11 +460,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                 # Access the current selection
                 try:
                     user_input = self.input_box("Please enter edit instructions!", "Input", "")
-                    endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
-                    model_name = self.get_config("model", "")
-                    provider = self.get_config("provider", "")
-                    api_key = self.get_config("api_key", "")
-
                     messages = []
                     if self.get_config("edit_selection_system_prompt", "") != "":
                         messages.append({"role": "system", "content": self.get_config("edit_selection_system_prompt", "")})
