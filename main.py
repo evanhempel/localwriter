@@ -443,6 +443,9 @@ class MainJob(unohelper.Base, XJobExecutor):
             combo_provider.Model.Text = current_provider
 
         # Set up provider change listener
+        # Get all needed controls first
+        edit_model = dialog.getControl("edit_model")
+        
         provider_listener = ProviderChangeListener(
             edit_api_key, 
             api_key_label,
