@@ -311,10 +311,13 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Add provider change listener
         class ProviderChangeListener(unohelper.Base, XItemListener):
-            def __init__(self, api_key_ctrl, api_key_label):
+            def __init__(self, api_key_ctrl, api_key_label, endpoint_ctrl, endpoint_label):
                 self.api_key_ctrl = api_key_ctrl
                 self.api_key_label = api_key_label
+                self.endpoint_ctrl = endpoint_ctrl
+                self.endpoint_label = endpoint_label
                 self.api_key_ctrl.Model.HelpText = "Leave blank if not required for your provider"
+                self.endpoint_ctrl.Model.HelpText = "Leave blank to use default endpoint"
 
             def itemStateChanged(self, event):
                 provider = event.Source.Model.Text
@@ -328,13 +331,31 @@ class MainJob(unohelper.Base, XJobExecutor):
                 self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
                 
                 try:
-                    print(f"Checking if provider '{provider}' requires API key...")
+                    print(f"Checking provider '{provider}' requirements...")
                     
-                    provider_config = litellm.utils.ProviderConfigManager.get_provider_model_info(
+                    # Default to requiring both key and endpoint
+                    needs_key = True
+                    needs_endpoint = True
+                    
+                    # Check for known local providers
+                    local_providers = ["ollama", "openai-compatible", "vllm"]
+                    if provider.lower() in local_providers:
+                        needs_endpoint = True
+                        self.endpoint_ctrl.Model.HelpText = "Required for local provider (e.g. http://localhost:11434)"
+                        self.endpoint_ctrl.Model.BackgroundColor = 0xFFFFFF
+                    else:
+                        needs_endpoint = False
+                        self.endpoint_ctrl.Model.HelpText = "Leave blank to use provider's default endpoint"
+                        self.endpoint_ctrl.Model.BackgroundColor = 0xEEEEEE
+                    
+                    # Check API key requirement
+                    try:
+                        provider_config = litellm.utils.ProviderConfigManager.get_provider_model_info(
                             model=None,
                             provider=litellm.utils.LlmProviders(provider))
-
-                    needs_key = provider_config.get_api_key('needed') == 'needed'
+                        needs_key = provider_config.get_api_key('needed') == 'needed'
+                    except:
+                        needs_key = True  # Fallback to requiring key if check fails
 
                     if not needs_key:
                         print(f"Provider '{provider}' does NOT require API key")
@@ -344,13 +365,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                         self.api_key_ctrl.Model.BackgroundColor = 0xEEEEEE
                     else:
                         print(f"Provider '{provider}' requires API key")
-
-                    #AI! configure the endpoint GUI field in a similar manner to how we toggle the API key field (see above). The line below tells us if we need the endpoint
-                    #needs_endpoint = 'localhost' in provider_config.get_api_base() or '127.0.0.1' in provider_config.get_api_base()
-
-                    # Turn on debug logging - get_models() may do a request
-                    #litellm._turn_on_debug()
-                    #models_for_provider = provider_config.get_models()  # NOTE: this isn't valid until api_key or endpoint has been specified depending on the provider
+                        self.api_key_ctrl.setEditable(True)
+                        self.api_key_ctrl.setEnable(True)
+                        self.api_key_ctrl.Model.HelpText = "API key required"
+                        self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
+                        
+                    # Set endpoint field state
+                    self.endpoint_ctrl.setEditable(needs_endpoint)
+                    self.endpoint_ctrl.setEnable(needs_endpoint)
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
@@ -374,7 +396,12 @@ class MainJob(unohelper.Base, XJobExecutor):
             combo_provider.Model.Text = current_provider
 
         # Set up provider change listener
-        provider_listener = ProviderChangeListener(edit_api_key, api_key_label)
+        provider_listener = ProviderChangeListener(
+            edit_api_key, 
+            api_key_label,
+            edit_endpoint,
+            dialog.getControl("label_endpoint")
+        )
         combo_provider.addItemListener(provider_listener)
         
         # Initialize state based on current provider
