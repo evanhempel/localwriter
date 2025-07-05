@@ -367,12 +367,11 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Initialize state based on current provider
         if current_provider:
-            provider_listener.itemStateChanged(
-                uno.createUnoStruct("com.sun.star.awt.ItemEvent",
-                    Source=combo_provider,
-                    SelectedItem=current_provider
-                )
-            )
+            # Create proper ItemEvent structure
+            item_event = uno.createUnoStruct("com.sun.star.awt.ItemEvent")
+            item_event.Source = combo_provider
+            item_event.Selected = 0  # Default selection index
+            provider_listener.itemStateChanged(item_event)
         
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
