@@ -308,7 +308,50 @@ class MainJob(unohelper.Base, XJobExecutor):
             _y = ps.Height / 2 - HEIGHT / 2
         dialog.setPosSize(_x, _y, 0, 0, POS)
         
+        # Add provider change listener
+        class ProviderChangeListener(unohelper.Base, XItemListener):
+            def __init__(self, api_key_ctrl, api_key_label):
+                self.api_key_ctrl = api_key_ctrl
+                self.api_key_label = api_key_label
+                self.api_key_ctrl.Model.HelpText = "Leave blank if not required for your provider"
+
+            def itemStateChanged(self, event):
+                provider = event.Source.Model.Text
+                if not provider:
+                    return
+                
+                try:
+                    # Test with empty key to see if provider requires one
+                    requires_key = not check_valid_key(
+                        model=f"{provider}/dummy-model",  # dummy model name
+                        api_key=""
+                    )
+                    
+                    self.api_key_ctrl.setEditable(requires_key)
+                    self.api_key_ctrl.setEnable(requires_key)
+                    self.api_key_ctrl.Model.HelpText = (
+                        "API key required for this provider" if requires_key 
+                        else "This provider typically doesn't require an API key"
+                    )
+                    
+                    # Visual indication
+                    self.api_key_ctrl.Model.BackgroundColor = (
+                        0xEEEEEE if not requires_key else 0xFFFFFF  # Grey if not needed
+                    )
+                    
+                except Exception as e:
+                    # Fallback - assume key might be needed
+                    print(f"Error checking key requirement: {str(e)}")
+                    self.api_key_ctrl.setEditable(True)
+                    self.api_key_ctrl.Model.BackgroundColor = 0xFFFFFF
+
+            def disposing(self, event):
+                pass
+
         combo_provider = dialog.getControl("combo_provider")
+        api_key_label = dialog.getControl("label_api_key")
+        edit_api_key = dialog.getControl("edit_api_key")
+        
         # Get known providers from LiteLLM
         try:
             import litellm
@@ -320,6 +363,19 @@ class MainJob(unohelper.Base, XJobExecutor):
         combo_provider.addItems(providers, 0)
         if current_provider in providers:
             combo_provider.Model.Text = current_provider
+
+        # Set up provider change listener
+        provider_listener = ProviderChangeListener(edit_api_key, api_key_label)
+        combo_provider.addItemListener(provider_listener)
+        
+        # Initialize state based on current provider
+        if current_provider:
+            provider_listener.itemStateChanged(
+                uno.createUnoStruct("com.sun.star.awt.ItemEvent",
+                    Source=combo_provider,
+                    SelectedItem=current_provider
+                )
+            )
         
         edit_api_key = dialog.getControl("edit_api_key")
         edit_api_key.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("api_key", "")))))
