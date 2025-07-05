@@ -342,7 +342,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_edit_selection_system_prompt = dialog.getControl("edit_edit_selection_system_prompt")
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
         
-        edit_provider.setFocus()
+        combo_provider.setFocus()
 
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
