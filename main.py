@@ -430,16 +430,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                             messages.append({"role": "system", "content": self.get_config("extend_selection_system_prompt", "")})
                         messages.append({"role": "user", "content": text_range.getString()})
                         
-                        # Construct model string based on provider if provided
-                        full_model = model_name
-                        if provider and model_name:
-                            full_model = f"{provider}/{model_name}"
-                        elif not model_name:
-                            # Default to a generic OpenAI-compatible model with explicit provider
-                            full_model = "openai/gpt-3.5-turbo"
-                            if provider:
-                                full_model = f"{provider}/gpt-3.5-turbo"
-
                         response = self.call_completion(
                             messages=messages,
                             max_tokens=self.get_config("extend_selection_max_tokens", 70)
@@ -465,16 +455,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                         messages.append({"role": "system", "content": self.get_config("edit_selection_system_prompt", "")})
                     user_prompt = f"ORIGINAL VERSION:\n{text_range.getString()}\nBelow is an edited version according to the following instructions. There are no comments in the edited version.\nInstructions:\n{user_input}\nEDITED VERSION:"
                     messages.append({"role": "user", "content": user_prompt})
-
-                    # Construct model string based on provider if provided
-                    full_model = model_name
-                    if provider and model_name:
-                        full_model = f"{provider}/{model_name}"
-                    elif not model_name:
-                        # Default to a generic OpenAI-compatible model with explicit provider
-                        full_model = "openai/gpt-3.5-turbo"
-                        if provider:
-                            full_model = f"{provider}/gpt-3.5-turbo"
 
                     response = self.call_completion(
                         messages=messages,
@@ -564,16 +544,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                                         messages.append({"role": "system", "content": self.get_config("extend_selection_system_prompt", "")})
                                     messages.append({"role": "user", "content": cell.getString()})
                                     
-                                    # Construct model string based on provider if provided
-                                    full_model = model_name
-                                    if provider and model_name:
-                                        full_model = f"{provider}/{model_name}"
-                                    elif not model_name:
-                                        # Default to a generic OpenAI-compatible model with explicit provider
-                                        full_model = "openai/gpt-3.5-turbo"
-                                        if provider:
-                                            full_model = f"{provider}/gpt-3.5-turbo"
-
                                     response = self.call_completion(
                                         messages=messages,
                                         max_tokens=self.get_config("extend_selection_max_tokens", 70)
@@ -595,16 +565,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     messages.append({"role": "system", "content": self.get_config("edit_selection_system_prompt", "")})
                                 user_prompt = f"ORIGINAL VERSION:\n{cell.getString()}\nBelow is an edited version according to the following instructions. Don't waste time thinking, be as fast as you can. There are no comments in the edited version.\nInstructions:\n{user_input}\nEDITED VERSION:"
                                 messages.append({"role": "user", "content": user_prompt})
-
-                                # Construct model string based on provider if provided
-                                full_model = model_name
-                                if provider and model_name:
-                                    full_model = f"{provider}/{model_name}"
-                                elif not model_name:
-                                    # Default to a generic OpenAI-compatible model with explicit provider
-                                    full_model = "openai/gpt-3.5-turbo"
-                                    if provider:
-                                        full_model = f"{provider}/gpt-3.5-turbo"
 
                                 response = self.call_completion(
                                     messages=messages,
