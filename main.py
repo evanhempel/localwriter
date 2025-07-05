@@ -339,12 +339,13 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
         class TestConnectionListener(unohelper.Base, XActionListener):
-            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl):
+            def __init__(self, endpoint_ctrl, model_ctrl, provider_ctrl, api_key_ctrl, result_ctrl, main_job):
                 self.endpoint_ctrl = endpoint_ctrl
                 self.model_ctrl = model_ctrl
                 self.provider_ctrl = provider_ctrl
                 self.api_key_ctrl = api_key_ctrl
                 self.result_ctrl = result_ctrl
+                self.main_job = main_job
 
             def disposing(self, source):
                 pass
@@ -359,18 +360,13 @@ class MainJob(unohelper.Base, XJobExecutor):
                     import litellm
                     litellm._turn_on_debug()
 
-                    # Construct model string based on provider if provided
-                    full_model = model_name
-                    if provider and model_name:
-                        full_model = f"{provider}/{model_name}"
-                    elif not model_name:
-                        full_model = "openai/gpt-3.5-turbo"
-                        if provider:
-                            full_model = f"{provider}/gpt-3.5-turbo"
-
-                    response = self.call_completion(
+                    response = self.main_job.call_completion(
                         messages=[{"role": "user", "content": "Hello, are you working?"}],
-                        max_tokens=10
+                        max_tokens=10,
+                        endpoint=endpoint,
+                        model_name=model_name,
+                        provider=provider,
+                        api_key=api_key
                     )
                     self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
@@ -381,7 +377,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
-        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("test_result"))
+        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("test_result"), self)
         btn_test.addActionListener(test_listener)
 
         if dialog.execute():
