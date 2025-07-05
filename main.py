@@ -370,11 +370,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                     response = self.call_completion(
                         messages=[{"role": "user", "content": "Hello, are you working?"}],
-                        max_tokens=10,
-                        endpoint=endpoint,
-                        model_name=model_name,
-                        provider=provider,
-                        api_key=api_key
+                        max_tokens=10
                     )
                     self.result_ctrl.setText("Success: " + response.choices[0].message.content)
                 except Exception as e:
@@ -451,11 +447,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                         response = self.call_completion(
                             messages=messages,
-                            max_tokens=self.get_config("extend_selection_max_tokens", 70),
-                            endpoint=endpoint,
-                            model_name=model_name,
-                            provider=provider,
-                            api_key=api_key
+                            max_tokens=self.get_config("extend_selection_max_tokens", 70)
                         )
 
                         # Append completion to selection
@@ -496,11 +488,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                     response = self.call_completion(
                         messages=messages,
-                        max_tokens=len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                        endpoint=endpoint,
-                        model_name=model_name,
-                        provider=provider,
-                        api_key=api_key
+                        max_tokens=len(text_range.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
                     )
 
                     # Replace selection with completion
@@ -598,11 +586,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                     response = self.call_completion(
                                         messages=messages,
-                                        max_tokens=self.get_config("extend_selection_max_tokens", 70),
-                                        endpoint=endpoint,
-                                        model_name=model_name,
-                                        provider=provider,
-                                        api_key=api_key
+                                        max_tokens=self.get_config("extend_selection_max_tokens", 70)
                                     )
 
                                     # Append completion to selection
@@ -634,11 +618,7 @@ class MainJob(unohelper.Base, XJobExecutor):
 
                                 response = self.call_completion(
                                     messages=messages,
-                                    max_tokens=len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0),
-                                    endpoint=endpoint,
-                                    model_name=model_name,
-                                    provider=provider,
-                                    api_key=api_key
+                                    max_tokens=len(cell.getString()) + self.get_config("edit_selection_max_new_tokens", 0)
                                 )
 
                                 # Get previous selected text
