@@ -94,6 +94,33 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Return the value corresponding to the key, or the default value if the key is not found
         return config_data.get(key, default)
 
+    def unset_config(self, key):
+        """Remove a key from the configuration"""
+        name_file = "localwriter.json"
+        
+        path_settings = self.sm.createInstanceWithContext('com.sun.star.util.PathSettings', self.ctx)
+        user_config_path = getattr(path_settings, "UserConfig")
+
+        if user_config_path.startswith('file://'):
+            user_config_path = str(uno.fileUrlToSystemPath(user_config_path))
+
+        config_file_path = os.path.join(user_config_path, name_file)
+
+        if os.path.exists(config_file_path):
+            try:
+                with open(config_file_path, 'r') as file:
+                    config_data = json.load(file)
+            except (IOError, json.JSONDecodeError):
+                return
+
+            if key in config_data:
+                del config_data[key]
+                try:
+                    with open(config_file_path, 'w') as file:
+                        json.dump(config_data, file, indent=4)
+                except IOError as e:
+                    print(f"Error writing to {config_file_path}: {e}")
+
     def set_config(self, key, value):
         name_file = "localwriter.json"
         
@@ -622,18 +649,30 @@ class MainJob(unohelper.Base, XJobExecutor):
                     if "edit_selection_system_prompt" in result:
                         self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
+                    # Handle endpoint
                     if "endpoint" in result and result["endpoint"].startswith("http"):
                         endpoint = result["endpoint"].rstrip('/')
                         self.set_config("endpoint", endpoint)
+                    elif "endpoint" not in result:
+                        self.unset_config("endpoint")
 
-                    if "model" in result:                
+                    # Handle model
+                    if "model" in result:
                         self.set_config("model", result["model"])
+                    else:
+                        self.unset_config("model")
                         
+                    # Handle provider
                     if "provider" in result:
                         self.set_config("provider", result["provider"])
+                    else:
+                        self.unset_config("provider")
                         
+                    # Handle API key
                     if "api_key" in result:
                         self.set_config("api_key", result["api_key"])
+                    else:
+                        self.unset_config("api_key")
 
                 except Exception as e:
                     text_range = selection.getByIndex(0)
@@ -735,18 +774,30 @@ class MainJob(unohelper.Base, XJobExecutor):
                                     self.set_config("edit_selection_system_prompt", result["edit_selection_system_prompt"])
 
                                 # Only save endpoint if it exists and starts with http
+                                # Handle endpoint
                                 if "endpoint" in result and result["endpoint"].startswith("http"):
                                     endpoint = result["endpoint"].rstrip('/')
                                     self.set_config("endpoint", endpoint)
+                                elif "endpoint" not in result:
+                                    self.unset_config("endpoint")
 
-                                if "model" in result:                
+                                # Handle model
+                                if "model" in result:
                                     self.set_config("model", result["model"])
+                                else:
+                                    self.unset_config("model")
                                     
+                                # Handle provider
                                 if "provider" in result:
                                     self.set_config("provider", result["provider"])
+                                else:
+                                    self.unset_config("provider")
                                     
+                                # Handle API key
                                 if "api_key" in result:
                                     self.set_config("api_key", result["api_key"])
+                                else:
+                                    self.unset_config("api_key")
 
                             except Exception as e:
                                 cell.setString(cell.getString() + ":error: " + str(e))
