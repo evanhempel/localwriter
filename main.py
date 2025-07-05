@@ -15,6 +15,7 @@ import re
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
     from litellm import completion, check_valid_key
+    import litellm
 except ImportError:
     # Fallback or error handling if LiteLLM is not available
     def completion(*args, **kwargs):
@@ -328,7 +329,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                 
                 try:
                     # Turn on debug logging
-                    import litellm
                     litellm._turn_on_debug()
                     print(f"Checking if provider '{provider}' requires API key...")
                     
@@ -351,10 +351,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
-                finally:
-                    # Turn off debug logging
-                    litellm._turn_off_debug()
-                    # Keep defaults (key required) if check fails
 
             def disposing(self, event):
                 pass
@@ -365,7 +361,6 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Get known providers from LiteLLM
         try:
-            import litellm
             providers = sorted(litellm.provider_list)
         except:
             providers = ["openai", "ollama", "anthropic", "cohere", "huggingface", "replicate"]
@@ -432,7 +427,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                 api_key = self.api_key_ctrl.getModel().Text
                 try:
                     # Turn on debug for this test call
-                    import litellm
                     litellm._turn_on_debug()
 
                     response = self.main_job.call_completion(
@@ -448,9 +442,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                 except Exception as e:
                     self.result_ctrl.setText("Failed: " + str(e))
                     print(f"Test Connection Error: {str(e)}")
-                finally:
-                    # Turn off debug after the test call
-                    litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
         test_listener = TestConnectionListener(
