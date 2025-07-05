@@ -351,7 +351,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if api_base:
                             needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
                         
-                    except:
+                    except: #AI! update this accept to just log the error. The needs_key var defaults to true so we don't need to set it here
                         needs_key = True  # Fallback to requiring key if check fails
 
                     if not needs_key:
