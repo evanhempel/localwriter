@@ -251,10 +251,10 @@ class MainJob(unohelper.Base, XJobExecutor):
         add("btn_ok", "Button", HORI_MARGIN + label_width + HORI_SEP, VERT_MARGIN, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"PushButtonType": OK, "DefaultButton": True})
 
-        add("label_provider", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT, 
-            {"Label": "Provider (e.g., openai, ollama, anthropic):", "NoLabel": True})
-        add("edit_provider", "Edit", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("provider", ""))})
+        add("label_provider", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT,
+            {"Label": "Provider:", "NoLabel": True})
+        add("combo_provider", "ComboBox", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN,
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Dropdown": True})
         
         add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
             {"Label": "Model (Required by Ollama):", "NoLabel": True})
@@ -376,14 +376,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                     litellm._turn_off_debug()
 
         btn_test = dialog.getControl("btn_test")
-        test_listener = TestConnectionListener(edit_endpoint, edit_model, edit_provider, edit_api_key, dialog.getControl("test_result"), self)
+        test_listener = TestConnectionListener(edit_endpoint, edit_model, combo_provider, edit_api_key, dialog.getControl("test_result"), self)
         btn_test.addActionListener(test_listener)
 
         if dialog.execute():
             result = {
                 "endpoint": edit_endpoint.getModel().Text,
                 "model": edit_model.getModel().Text,
-                "provider": edit_provider.getModel().Text,
+                "provider": combo_provider.Model.Text,
                 "api_key": edit_api_key.getModel().Text,
                 "extend_selection_system_prompt": edit_extend_selection_system_prompt.getModel().Text,
                 "edit_selection_system_prompt": edit_edit_selection_system_prompt.getModel().Text
