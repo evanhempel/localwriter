@@ -117,7 +117,14 @@ To run the extension from your local Git repository and test changes efficiently
      ```
      /usr/lib/libreoffice/program/unopkg remove org.extension.sample; yes yes | /usr/lib/libreoffice/program/unopkg add . > /dev/null
      ```
-   - Alternatively, use the provided Makefile (see below) which automates this process.
+   - Alternatively, use the provided Makefile which provides these commands:
+     ```bash
+     make dev-install   # First time setup
+     make dev-refresh   # After making changes
+     make dev-run       # To start LibreOffice
+     make package       # Create distribution .oxt file
+     ```
+     Run `make help` to see all available commands.
 
 4. **Restart LibreOffice:**
    - Close and reopen LibreOffice Writer or Calc. You should see the "localwriter" menu with options like "Extend Selection", "Edit Selection", and "Settings" in the menu bar.
