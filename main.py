@@ -248,22 +248,23 @@ class MainJob(unohelper.Base, XJobExecutor):
             for key, value in props.items():
                 setattr(model, key, value)
         label_width = WIDTH - BUTTON_WIDTH - HORI_SEP - HORI_MARGIN * 2
-        add("label_endpoint", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT, 
-            {"Label": "Endpoint URL/Port (Local or Proxy, e.g., https://api.x.ai/v1/chat/completions for Grok):", "NoLabel": True})
         add("btn_ok", "Button", HORI_MARGIN + label_width + HORI_SEP, VERT_MARGIN, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"PushButtonType": OK, "DefaultButton": True})
-        add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT,
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("endpoint", "http://127.0.0.1:5000"))})
+
+        add("label_provider", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT, 
+            {"Label": "Provider (e.g., openai, ollama, anthropic):", "NoLabel": True})
+        add("edit_provider", "Edit", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("provider", ""))})
         
         add("label_model", "FixedText", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, label_width, LABEL_HEIGHT, 
             {"Label": "Model (Required by Ollama):", "NoLabel": True})
-        add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT, 
+        add("edit_model", "Edit", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP + EDIT_HEIGHT, 
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("model", ""))})
         
-        add("label_provider", "FixedText", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*3 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
-            {"Label": "Provider (e.g., openai, ollama, anthropic):", "NoLabel": True})
-        add("edit_provider", "Edit", HORI_MARGIN, LABEL_HEIGHT*4 + VERT_MARGIN + VERT_SEP*4 + EDIT_HEIGHT*2, 
-                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("provider", ""))})
+        add("label_endpoint", "FixedText", HORI_MARGIN, LABEL_HEIGHT*2 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, label_width, LABEL_HEIGHT, 
+            {"Label": "Endpoint URL/Port (Local or Proxy, e.g., https://api.x.ai/v1/chat/completions for Grok):", "NoLabel": True})
+        add("edit_endpoint", "Edit", HORI_MARGIN, LABEL_HEIGHT*3 + VERT_MARGIN + VERT_SEP*2 + EDIT_HEIGHT*2, 
+                WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Text": str(self.get_config("endpoint", "http://127.0.0.1:5000"))})
         
         add("label_api_key", "FixedText", HORI_MARGIN, LABEL_HEIGHT*5 + VERT_MARGIN + VERT_SEP*5 + EDIT_HEIGHT*3, label_width, LABEL_HEIGHT, 
             {"Label": "API Key (Optional, use with caution):", "NoLabel": True})
@@ -331,7 +332,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_edit_selection_system_prompt = dialog.getControl("edit_edit_selection_system_prompt")
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
         
-        edit_endpoint.setFocus()
+        edit_provider.setFocus()
 
         # Add listener for test button using a UNO-compatible ActionListener
         from com.sun.star.awt import XActionListener
