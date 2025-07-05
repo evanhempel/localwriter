@@ -425,11 +425,6 @@ class MainJob(unohelper.Base, XJobExecutor):
                     # Get the first range of the selection
                     #text_range = selection.getByIndex(0)
                     try:
-                        endpoint = self.get_config("endpoint", "http://127.0.0.1:5000")
-                        model_name = self.get_config("model", "")
-                        provider = self.get_config("provider", "")
-                        api_key = self.get_config("api_key", "")
-
                         messages = []
                         if self.get_config("extend_selection_system_prompt", "") != "":
                             messages.append({"role": "system", "content": self.get_config("extend_selection_system_prompt", "")})
