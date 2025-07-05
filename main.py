@@ -311,11 +311,12 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Add provider change listener
         class ProviderChangeListener(unohelper.Base, XItemListener):
-            def __init__(self, api_key_ctrl, api_key_label, endpoint_ctrl, endpoint_label):
+            def __init__(self, api_key_ctrl, api_key_label, endpoint_ctrl, endpoint_label, model_ctrl):
                 self.api_key_ctrl = api_key_ctrl
                 self.api_key_label = api_key_label
                 self.endpoint_ctrl = endpoint_ctrl
                 self.endpoint_label = endpoint_label
+                self.model_ctrl = model_ctrl
                 self.api_key_ctrl.Model.HelpText = "Leave blank if not required for your provider"
                 self.endpoint_ctrl.Model.HelpText = "Leave blank to use default endpoint"
 
@@ -397,6 +398,25 @@ class MainJob(unohelper.Base, XJobExecutor):
                             False,
                             "Uses provider's default endpoint"
                         )
+
+                    # Check if we can fetch available models
+                    has_credentials = (not needs_key or self.api_key_ctrl.getModel().Text) and \
+                                    (not needs_endpoint or self.endpoint_ctrl.getModel().Text)
+                    
+                    if has_credentials:
+                        try:
+                            models = provider_config.get_models()
+                            if models:
+                                self.model_ctrl.removeItems(0, self.model_ctrl.getItemCount())
+                                self.model_ctrl.addItems(sorted(models), 0)
+                                self.model_ctrl.Model.HelpText = f"Available models for {provider}"
+                            else:
+                                self.model_ctrl.Model.HelpText = "No models found - check API key/endpoint"
+                                self.model_ctrl.Model.BackgroundColor = 0xFFDDDD
+                        except Exception as e:
+                            print(f"Error fetching models: {str(e)}")
+                            self.model_ctrl.Model.HelpText = f"Error fetching models: {str(e)}"
+                            self.model_ctrl.Model.BackgroundColor = 0xFFDDDD
                     
                 except Exception as e:
                     print(f"Error checking key requirement for {provider}: {str(e)}")
@@ -427,7 +447,8 @@ class MainJob(unohelper.Base, XJobExecutor):
             edit_api_key, 
             api_key_label,
             edit_endpoint,
-            endpoint_label
+            endpoint_label,
+            edit_model
         )
         combo_provider.addItemListener(provider_listener)
         
