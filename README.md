@@ -82,13 +82,13 @@ In the settings, you can configure:
 *   Maximum number of additional tokens (above the number of letters in the original selection) for "Edit Selection."
 *   Custom "system prompts" for both "Extend Selection" and "Edit Selection." These prompts are prepended to the selection before sending it to the language model.  For example, you can use a sample of your writing to guide the model's style.
 
-## Local Development
+## Contributing
+
+Help with development is always welcome. localwriter has a number of outstanding feature requests by users. Feel free to work on any of them, and you can help improve freedom-respecting local AI.
+
+### Local Development Setup
 
 For developers who want to modify or contribute to Localwriter, you can run and test the extension directly from your source code without packaging it into an `.oxt` file. This allows for quick iteration and seeing changes reflected in the LibreOffice UI.
-
-### Running in Developer Mode
-
-To run the extension from your local Git repository and test changes efficiently:
 
 1. **Clone the Repository (if not already done):**
    - Clone the Localwriter repository to your local machine if you haven't already:
@@ -130,13 +130,9 @@ To run the extension from your local Git repository and test changes efficiently
      ```
    - Replace `org.extension.sample` with the identifier from `description.xml` if different.
 
-This approach ensures you can see the full extension behavior (including menu integration and UI dialogs) while making changes directly in your Git repository, avoiding the need to repeatedly package or copy files.
+### Building the Extension Package
 
-## Contributing
-
-Help with development is always welcome. localwriter has a number of outstanding feature requests by users. Feel free to work on any of them, and you can help improve freedom-respecting local AI. 
-
-### Building localwriter
+To create a distributable `.oxt` package:
 
 In a terminal, change directory into the localwriter repository top-level directory, then run the following command:
 
@@ -152,7 +148,7 @@ zip -r localwriter.oxt \
   README.md
 ````
 
-This will create the file `localwriter.oxt` which you can open with libreoffice to install the localwriter extension. You can also change the file extension to .zip and manually unzip the extension file, if you want to inspect a localwriter `.oxt` file yourself. It is all human-readable, since python is an interpreted language. 
+This will create the file `localwriter.oxt` which you can open with libreoffice to install the localwriter extension. You can also change the file extension to .zip and manually unzip the extension file, if you want to inspect a localwriter `.oxt` file yourself. It is all human-readable, since python is an interpreted language.
 
 
 
