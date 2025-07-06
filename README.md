@@ -19,8 +19,9 @@ This is a LibreOffice Writer extension that enables inline generative editing wi
         *   [text-generation-webui](#text-generation-webui)
         *   [Ollama](#ollama)
 *   [Settings](#settings)
-*   [Local Development](#local-development)
-    *   [Running in Developer Mode](#running-in-developer-mode)
+*   [Contributing](#contributing)
+    *   [Local Development Setup](#local-development-setup)
+    *   [Building the Extension Package](#building-the-extension-package)
 *   [License](#license)
 
 ## Features
