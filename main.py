@@ -451,7 +451,21 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
  
         # Define local providers
-        local_providers = ["ollama", "llamafile", "text-generation-webui", "vllm", "openai-compatible"]
+        local_providers = [
+            "ollama", 
+            "llamafile",
+            "text-generation-webui",
+            "vllm",
+            "openai-compatible",
+            "lm_studio",
+            "oobabooga",
+            "xinference",
+            "hosted_vllm",
+            "custom",
+            "custom_openai",
+            "openai_like",
+            "litellm_proxy"
+        ]
         
         # Get known providers from LiteLLM
         all_providers = sorted(litellm.provider_list)
