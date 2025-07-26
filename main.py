@@ -353,9 +353,10 @@ class MainJob(unohelper.Base, XJobExecutor):
                         if hasattr(provider_config, 'get_api_base'):
                             try:
                                 api_base = provider_config.get_api_base()
+                                print(f"Provider API base: {api_base}")
                                 if api_base:
-                                    # Only disable endpoint if we confirm it's not needed
-                                    needs_endpoint = True
+                                    needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
+                                    print(f"Endpoint required: {needs_endpoint}")
                             except Exception as e:
                                 print(f"Error checking endpoint requirement: {str(e)}")
                                 # Keep default of requiring endpoint
