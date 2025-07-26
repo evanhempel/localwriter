@@ -503,12 +503,14 @@ class MainJob(unohelper.Base, XJobExecutor):
                     print("No previous selection to restore")
             
             def disposing(self, event):
-                print("AdvancedToggleListener disposed")
+                print(f"AdvancedToggleListener disposing. Event: {event}")
+                # Don't actually dispose - we want to keep the listener active
 
         # Create and register advanced toggle listener first
         check_advanced = dialog.getControl("check_advanced")
-        advanced_listener = AdvancedToggleListener(combo_provider)
-        check_advanced.addItemListener(advanced_listener)
+        self._advanced_listener = AdvancedToggleListener(combo_provider)  # Keep reference to prevent GC
+        check_advanced.addItemListener(self._advanced_listener)
+        print(f"Listener registered. Active listeners: {check_advanced.getItemListeners()}")
         
         # Debug checkbox state
         print(f"Checkbox initial state: {check_advanced.Model.State}")
@@ -636,7 +638,8 @@ class MainJob(unohelper.Base, XJobExecutor):
         else:
             result = {}
 
-        dialog.dispose()
+        # Don't dispose the listener - let it be garbage collected naturally
+        # dialog.dispose() will handle cleanup
         return result
     #end sharealike section 
 
