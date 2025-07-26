@@ -332,22 +332,38 @@ class MainJob(unohelper.Base, XJobExecutor):
                     needs_key = True
                     needs_endpoint = False
                     
+                    # Default to requiring both fields unless we can confirm otherwise
+                    needs_key = True
+                    needs_endpoint = False
+                    api_base = None
+
                     try:
-                        # Get provider config
+                        # Get provider config if available
                         provider_config = litellm.utils.ProviderConfigManager.get_provider_model_info(
                             model=None,
                             provider=litellm.utils.LlmProviders(provider))
                         
-                        # Check API key requirement
-                        needs_key = provider_config.get_api_key('needed') == 'needed'
+                        if hasattr(provider_config, 'get_api_key'):
+                            try:
+                                needs_key = provider_config.get_api_key('needed') == 'needed'
+                            except Exception as e:
+                                print(f"Error checking API key requirement: {str(e)}")
+                                needs_key = True  # Default to requiring key if check fails
                         
-                        # Check if endpoint is needed (local/self-hosted)
-                        api_base = provider_config.get_api_base()
-                        if api_base:
-                            needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
+                        if hasattr(provider_config, 'get_api_base'):
+                            try:
+                                api_base = provider_config.get_api_base()
+                                if api_base:
+                                    needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
+                            except Exception as e:
+                                print(f"Error checking endpoint requirement: {str(e)}")
+                                needs_endpoint = False  # Default to not requiring endpoint if check fails
                         
                     except Exception as e:
-                        print(f"Error checking provider config: {str(e)}")
+                        print(f"Error getting provider config: {str(e)}")
+                        # If we can't get config, assume key is needed but endpoint isn't
+                        needs_key = True
+                        needs_endpoint = False
 
                     def update_widget_state(widget, is_required, help_text, example_text=None):
                         """Helper to update widget state consistently"""
