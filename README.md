@@ -19,8 +19,9 @@ This is a LibreOffice Writer extension that enables inline generative editing wi
         *   [text-generation-webui](#text-generation-webui)
         *   [Ollama](#ollama)
 *   [Settings](#settings)
-*   [Local Development](#local-development)
-    *   [Running in Developer Mode](#running-in-developer-mode)
+*   [Contributing](#contributing)
+    *   [Local Development Setup](#local-development-setup)
+    *   [Building the Extension Package](#building-the-extension-package)
 *   [License](#license)
 
 ## Features
@@ -84,13 +85,13 @@ In the settings, you can configure:
 *   Endpoint URL/Port for connecting to the backend model runner.
 *   Model name (required for Ollama and some other backends).
 
-## Local Development
+## Contributing
+
+Help with development is always welcome. localwriter has a number of outstanding feature requests by users. Feel free to work on any of them, and you can help improve freedom-respecting local AI.
+
+### Local Development Setup
 
 For developers who want to modify or contribute to Localwriter, you can run and test the extension directly from your source code without packaging it into an `.oxt` file. This allows for quick iteration and seeing changes reflected in the LibreOffice UI.
-
-### Running in Developer Mode
-
-To run the extension from your local Git repository and test changes efficiently:
 
 1. **Clone the Repository (if not already done):**
    - Clone the Localwriter repository to your local machine if you haven't already:
@@ -99,10 +100,9 @@ To run the extension from your local Git repository and test changes efficiently
      cd localwriter
      ```
 
-2. **Vendoring LiteLLM for Development (Optional):**
-   - If you are working on a version that uses LiteLLM, you need to vendor the library and its dependencies into the `lib/` directory:
+2. **Vendoring LiteLLM for Development:**
+   - You need to vendor the library and its dependencies into the `lib/` directory:
      ```
-     mkdir -p lib
      pip install litellm -t lib
      ```
    - Ensure all dependencies are included in `lib/` to avoid import issues in LibreOffice's Python environment.
@@ -150,11 +150,10 @@ To run the extension from your local Git repository and test changes efficiently
 
 This approach ensures you can see the full extension behavior (including menu integration and UI dialogs) while making changes directly in your Git repository, avoiding the need to repeatedly package or copy files.
 
-## Contributing
 
-Help with development is always welcome. localwriter has a number of outstanding feature requests by users. Feel free to work on any of them, and you can help improve freedom-respecting local AI. 
+### Building the Extension Package
 
-### Building localwriter
+To create a distributable `.oxt` package:
 
 In a terminal, change directory into the localwriter repository top-level directory, then run the following command:
 
