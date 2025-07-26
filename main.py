@@ -461,8 +461,13 @@ class MainJob(unohelper.Base, XJobExecutor):
                 self.combo_provider = combo_provider
             
             def itemStateChanged(self, event):
+                print(f"Advanced toggle state changed. Event State: {event.State}")
                 is_advanced = event.State == 1
                 current_selection = self.combo_provider.Model.Text
+                
+                print(f"Current selection: {current_selection}")
+                print(f"All providers: {all_providers}")
+                print(f"Local providers: {local_providers}")
                 
                 # Clear and repopulate based on advanced state
                 self.combo_provider.removeItems(0, self.combo_provider.getItemCount())
@@ -471,9 +476,15 @@ class MainJob(unohelper.Base, XJobExecutor):
                     p for p in all_providers if p in local_providers
                 ]
                 
+                print(f"New providers list: {providers}")
+                print(f"Adding {len(providers)} items to combo box")
+                
                 self.combo_provider.addItems(providers, 0)
                 if current_selection in providers:
+                    print(f"Restoring previous selection: {current_selection}")
                     self.combo_provider.Model.Text = current_selection
+                else:
+                    print("No valid previous selection to restore")
             
             def disposing(self, event):
                 pass
@@ -484,12 +495,20 @@ class MainJob(unohelper.Base, XJobExecutor):
         
         # Initial population based on advanced state
         current_provider = str(self.get_config("provider", ""))
-        initial_providers = all_providers if check_advanced.Model.State == 1 else [
+        initial_advanced_state = check_advanced.Model.State == 1
+        print(f"Initial advanced state: {initial_advanced_state}")
+        
+        initial_providers = all_providers if initial_advanced_state else [
             p for p in all_providers if p in local_providers
         ]
+        print(f"Initial providers list: {initial_providers}")
+        
         combo_provider.addItems(initial_providers, 0)
         if current_provider in initial_providers:
+            print(f"Setting initial provider: {current_provider}")
             combo_provider.Model.Text = current_provider
+        else:
+            print("No valid initial provider found")
 
         # Set up provider change listener
         provider_listener = ProviderChangeListener(
