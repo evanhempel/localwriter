@@ -221,7 +221,7 @@ class MainJob(unohelper.Base, XJobExecutor):
         VERT_SEP = 4
         LABEL_HEIGHT = BUTTON_HEIGHT + 5
         EDIT_HEIGHT = 24
-        HEIGHT = VERT_MARGIN * 8 + LABEL_HEIGHT * 9 + VERT_SEP * 10 + EDIT_HEIGHT * 8 + 350
+        HEIGHT = VERT_MARGIN * 8 + LABEL_HEIGHT * 9 + VERT_SEP * 10 + EDIT_HEIGHT * 8 + 350 + 30  # Extra space for checkbox
         import uno
         from com.sun.star.awt.PosSize import POS, SIZE, POSSIZE
         from com.sun.star.awt.PushButtonType import OK, CANCEL
@@ -246,8 +246,10 @@ class MainJob(unohelper.Base, XJobExecutor):
         add("btn_ok", "Button", HORI_MARGIN + label_width + HORI_SEP, VERT_MARGIN, 
                 BUTTON_WIDTH, BUTTON_HEIGHT, {"PushButtonType": OK, "DefaultButton": True})
 
-        add("label_provider", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width, LABEL_HEIGHT,
+        add("label_provider", "FixedText", HORI_MARGIN, VERT_MARGIN, label_width - BUTTON_WIDTH - HORI_SEP, LABEL_HEIGHT,
             {"Label": "Provider:", "NoLabel": True})
+        add("check_advanced", "CheckBox", HORI_MARGIN + label_width - BUTTON_WIDTH, VERT_MARGIN,
+                BUTTON_WIDTH, LABEL_HEIGHT, {"Label": "Advanced", "State": 0})
         add("combo_provider", "ComboBox", HORI_MARGIN, LABEL_HEIGHT + VERT_MARGIN,
                 WIDTH - HORI_MARGIN * 2, EDIT_HEIGHT, {"Dropdown": True})
         
@@ -448,12 +450,47 @@ class MainJob(unohelper.Base, XJobExecutor):
         edit_edit_selection_system_prompt = dialog.getControl("edit_edit_selection_system_prompt")
         edit_edit_selection_system_prompt.setSelection(uno.createUnoStruct("com.sun.star.awt.Selection", 0, len(str(self.get_config("edit_selection_system_prompt", "")))))
  
-        # Get known providers from LiteLLM
-        providers = sorted(litellm.provider_list)
+        # Define local providers
+        local_providers = ["ollama", "llamafile", "text-generation-webui", "vllm", "openai-compatible"]
         
+        # Get known providers from LiteLLM
+        all_providers = sorted(litellm.provider_list)
+        
+        # Add listener for advanced checkbox
+        from com.sun.star.awt import XItemListener
+        class AdvancedToggleListener(unohelper.Base, XItemListener):
+            def __init__(self, combo_provider):
+                self.combo_provider = combo_provider
+            
+            def itemStateChanged(self, event):
+                is_advanced = event.State == 1
+                current_selection = self.combo_provider.Model.Text
+                
+                # Clear and repopulate based on advanced state
+                self.combo_provider.removeItems(0, self.combo_provider.getItemCount())
+                
+                providers = all_providers if is_advanced else [
+                    p for p in all_providers if p in local_providers
+                ]
+                
+                self.combo_provider.addItems(providers, 0)
+                if current_selection in providers:
+                    self.combo_provider.Model.Text = current_selection
+            
+            def disposing(self, event):
+                pass
+
+        check_advanced = dialog.getControl("check_advanced")
+        advanced_listener = AdvancedToggleListener(combo_provider)
+        check_advanced.addItemListener(advanced_listener)
+        
+        # Initial population based on advanced state
         current_provider = str(self.get_config("provider", ""))
-        combo_provider.addItems(providers, 0)
-        if current_provider in providers:
+        initial_providers = all_providers if check_advanced.Model.State == 1 else [
+            p for p in all_providers if p in local_providers
+        ]
+        combo_provider.addItems(initial_providers, 0)
+        if current_provider in initial_providers:
             combo_provider.Model.Text = current_provider
 
         # Set up provider change listener
