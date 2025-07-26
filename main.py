@@ -345,7 +345,9 @@ class MainJob(unohelper.Base, XJobExecutor):
                         
                         if hasattr(provider_config, 'get_api_key'):
                             try:
-                                needs_key = provider_config.get_api_key('needed') == 'needed'
+                                _needs_key = provider_config.get_api_key('needed') 
+                                print(f"Provider key needed: {_needs_key}")
+                                needs_key = str(_needs_key) == 'needed'
                             except Exception as e:
                                 print(f"Error checking API key requirement: {str(e)}")
                                 # Keep default of requiring key
@@ -470,17 +472,17 @@ class MainJob(unohelper.Base, XJobExecutor):
         local_providers = [
             "ollama", 
             "llamafile",
-            "text-generation-webui",
-            "vllm",
-            "openai-compatible",
+            #"text-generation-webui",
+            #"vllm",
+            #"openai-compatible",
             "lm_studio",
-            "oobabooga",
-            "xinference",
-            "hosted_vllm",
-            "custom",
-            "custom_openai",
-            "openai_like",
-            "litellm_proxy"
+            #"oobabooga",
+            #"xinference",
+            #"hosted_vllm",
+            #"custom",
+            #"custom_openai",
+            #"openai_like",
+            #"litellm_proxy"
         ]
         
         # Get known providers from LiteLLM
