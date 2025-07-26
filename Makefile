@@ -44,7 +44,7 @@ dev-run:
 	@echo "Starting LibreOffice Writer..."
 	$(LIBREOFFICE) --writer &
 
-package:
+package: install-deps
 	@echo "Creating localwriter.oxt package..."
 	zip -r localwriter.oxt \
 		Accelerators.xcu \
@@ -57,6 +57,10 @@ package:
 		README.md \
 		lib
 
-clean:
+clean: clean-deps
 	@echo "Cleaning up..."
 	rm -f localwriter.oxt
+
+clean-deps:
+	@echo "Removing installed dependencies..."
+	find lib -mindepth 1 -not -name 'README.txt' -delete
