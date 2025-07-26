@@ -547,10 +547,23 @@ class MainJob(unohelper.Base, XJobExecutor):
         print(f"Checkbox initial state: {check_advanced.Model.State}")
         print(f"Checkbox enabled: {check_advanced.isEnabled()}")
         
-        # Initial population based on advanced state
+        # Initial population based on saved provider
         current_provider = str(self.get_config("provider", ""))
-        initial_advanced_state = check_advanced.Model.State == 1
-        print(f"Initial advanced state: {initial_advanced_state}")
+        
+        # Check if saved provider is in local providers
+        is_local_provider = False
+        if current_provider:
+            try:
+                current_provider_enum = litellm.utils.LlmProviders(current_provider)
+                is_local_provider = current_provider_enum.value in local_providers
+            except ValueError:
+                pass
+        
+        # Set advanced state if saved provider isn't local
+        initial_advanced_state = not is_local_provider
+        if initial_advanced_state:
+            check_advanced.Model.State = 1
+        print(f"Initial advanced state: {initial_advanced_state} (saved provider is local: {is_local_provider})")
         
         # Convert local_providers strings to enum values for comparison
         local_provider_enums = [
