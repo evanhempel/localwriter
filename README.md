@@ -148,9 +148,6 @@ For developers who want to modify or contribute to Localwriter, you can run and 
      ```
    - Replace `org.extension.sample` with the identifier from `description.xml` if different.
 
-This approach ensures you can see the full extension behavior (including menu integration and UI dialogs) while making changes directly in your Git repository, avoiding the need to repeatedly package or copy files.
-
-
 ### Building the Extension Package
 
 To create a distributable `.oxt` package:
@@ -170,7 +167,7 @@ zip -r localwriter.oxt \
   lib
 ````
 
-This will create the file `localwriter.oxt` which you can open with libreoffice to install the localwriter extension. You can also change the file extension to .zip and manually unzip the extension file, if you want to inspect a localwriter `.oxt` file yourself. It is all human-readable, since python is an interpreted language. 
+This will create the file `localwriter.oxt` which you can open with libreoffice to install the localwriter extension. You can also change the file extension to .zip and manually unzip the extension file, if you want to inspect a localwriter `.oxt` file yourself. It is all human-readable, since python is an interpreted language.
 
 **Note on Vendoring LiteLLM for Distribution:**
 - Before building the `.oxt` file for distribution, ensure the `lib/` directory contains the vendored `LiteLLM` library and its dependencies. You can do this by running:
