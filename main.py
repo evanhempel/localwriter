@@ -334,7 +334,7 @@ class MainJob(unohelper.Base, XJobExecutor):
                     
                     # Default to requiring both fields unless we can confirm otherwise
                     needs_key = True
-                    needs_endpoint = False
+                    needs_endpoint = True
                     api_base = None
 
                     try:
@@ -348,22 +348,21 @@ class MainJob(unohelper.Base, XJobExecutor):
                                 needs_key = provider_config.get_api_key('needed') == 'needed'
                             except Exception as e:
                                 print(f"Error checking API key requirement: {str(e)}")
-                                needs_key = True  # Default to requiring key if check fails
+                                # Keep default of requiring key
                         
                         if hasattr(provider_config, 'get_api_base'):
                             try:
                                 api_base = provider_config.get_api_base()
                                 if api_base:
-                                    needs_endpoint = 'localhost' in api_base or '127.0.0.1' in api_base
+                                    # Only disable endpoint if we confirm it's not needed
+                                    needs_endpoint = True
                             except Exception as e:
                                 print(f"Error checking endpoint requirement: {str(e)}")
-                                needs_endpoint = False  # Default to not requiring endpoint if check fails
+                                # Keep default of requiring endpoint
                         
                     except Exception as e:
                         print(f"Error getting provider config: {str(e)}")
-                        # If we can't get config, assume key is needed but endpoint isn't
-                        needs_key = True
-                        needs_endpoint = False
+                        # If we can't get config, keep both fields enabled by default
 
                     def update_widget_state(widget, is_required, help_text, example_text=None):
                         """Helper to update widget state consistently"""
