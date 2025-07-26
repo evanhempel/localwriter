@@ -462,9 +462,15 @@ class MainJob(unohelper.Base, XJobExecutor):
                 print("AdvancedToggleListener initialized")
             
             def itemStateChanged(self, event):
-                print(f"\nAdvanced toggle state changed. Source: {event.Source}")
-                print(f"Event State: {event.State}")
-                print(f"Event Source Model State: {event.Source.Model.State}")
+                try:
+                    print(f"\nAdvanced toggle state changed. Source: {event.Source}")
+                    print(f"Event State: {event.State}")
+                    if hasattr(event.Source, 'Model') and hasattr(event.Source.Model, 'State'):
+                        print(f"Event Source Model State: {event.Source.Model.State}")
+                    else:
+                        print("Could not access Source.Model.State")
+                except Exception as e:
+                    print(f"Error in itemStateChanged: {str(e)}")
                 
                 is_advanced = event.State == 1
                 current_selection = self.combo_provider.Model.Text
@@ -510,7 +516,11 @@ class MainJob(unohelper.Base, XJobExecutor):
         check_advanced = dialog.getControl("check_advanced")
         self._advanced_listener = AdvancedToggleListener(combo_provider)  # Keep reference to prevent GC
         check_advanced.addItemListener(self._advanced_listener)
-        print(f"Listener registered. Active listeners: {check_advanced.getItemListeners()}")
+        try:
+            listeners = check_advanced.getItemListeners()
+            print(f"Listener registered. Found {len(listeners)} active listeners")
+        except Exception as e:
+            print(f"Could not check listeners (non-fatal): {str(e)}")
         
         # Debug checkbox state
         print(f"Checkbox initial state: {check_advanced.Model.State}")
