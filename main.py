@@ -459,9 +459,13 @@ class MainJob(unohelper.Base, XJobExecutor):
         class AdvancedToggleListener(unohelper.Base, XItemListener):
             def __init__(self, combo_provider):
                 self.combo_provider = combo_provider
+                print("AdvancedToggleListener initialized")
             
             def itemStateChanged(self, event):
-                print(f"Advanced toggle state changed. Event State: {event.State}")
+                print(f"\nAdvanced toggle state changed. Source: {event.Source}")
+                print(f"Event State: {event.State}")
+                print(f"Event Source Model State: {event.Source.Model.State}")
+                
                 is_advanced = event.State == 1
                 current_selection = self.combo_provider.Model.Text
                 
@@ -469,44 +473,75 @@ class MainJob(unohelper.Base, XJobExecutor):
                 print(f"All providers: {all_providers}")
                 print(f"Local providers: {local_providers}")
                 
-                # Clear and repopulate based on advanced state
+                # Clear existing items
                 self.combo_provider.removeItems(0, self.combo_provider.getItemCount())
                 
+                # Filter providers based on advanced state
                 providers = all_providers if is_advanced else [
-                    p for p in all_providers if p in local_providers
+                    p for p in all_providers 
+                    if p.value in local_providers
                 ]
                 
-                print(f"New providers list: {providers}")
-                print(f"Adding {len(providers)} items to combo box")
+                print(f"Filtered providers count: {len(providers)}")
+                print(f"First 5 providers: {providers[:5]}")
                 
+                # Add filtered providers
                 self.combo_provider.addItems(providers, 0)
-                if current_selection in providers:
-                    print(f"Restoring previous selection: {current_selection}")
-                    self.combo_provider.Model.Text = current_selection
+                
+                # Try to restore previous selection if possible
+                if current_selection:
+                    try:
+                        current_enum = litellm.utils.LlmProviders(current_selection)
+                        if current_enum in providers:
+                            print(f"Restoring previous selection: {current_selection}")
+                            self.combo_provider.Model.Text = current_selection
+                        else:
+                            print(f"Previous selection {current_selection} not in filtered list")
+                    except ValueError:
+                        print(f"Invalid previous selection: {current_selection}")
                 else:
-                    print("No valid previous selection to restore")
+                    print("No previous selection to restore")
             
             def disposing(self, event):
-                pass
+                print("AdvancedToggleListener disposed")
 
+        # Create and register advanced toggle listener first
         check_advanced = dialog.getControl("check_advanced")
         advanced_listener = AdvancedToggleListener(combo_provider)
         check_advanced.addItemListener(advanced_listener)
+        
+        # Debug checkbox state
+        print(f"Checkbox initial state: {check_advanced.Model.State}")
+        print(f"Checkbox enabled: {check_advanced.isEnabled()}")
         
         # Initial population based on advanced state
         current_provider = str(self.get_config("provider", ""))
         initial_advanced_state = check_advanced.Model.State == 1
         print(f"Initial advanced state: {initial_advanced_state}")
         
-        initial_providers = all_providers if initial_advanced_state else [
-            p for p in all_providers if p in local_providers
+        # Convert local_providers strings to enum values for comparison
+        local_provider_enums = [
+            p for p in all_providers 
+            if p.value in local_providers
         ]
+        
+        initial_providers = all_providers if initial_advanced_state else local_provider_enums
         print(f"Initial providers list: {initial_providers}")
         
+        # Add items using enum values
+        combo_provider.removeItems(0, combo_provider.getItemCount())
         combo_provider.addItems(initial_providers, 0)
-        if current_provider in initial_providers:
-            print(f"Setting initial provider: {current_provider}")
-            combo_provider.Model.Text = current_provider
+        
+        if current_provider:
+            try:
+                current_provider_enum = litellm.utils.LlmProviders(current_provider)
+                if current_provider_enum in initial_providers:
+                    print(f"Setting initial provider: {current_provider}")
+                    combo_provider.Model.Text = current_provider
+                else:
+                    print(f"Provider {current_provider} not in initial providers list")
+            except ValueError:
+                print(f"Invalid provider in config: {current_provider}")
         else:
             print("No valid initial provider found")
 
