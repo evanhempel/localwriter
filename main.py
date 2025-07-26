@@ -5,7 +5,7 @@ import json
 import urllib.request
 import urllib.parse
 from com.sun.star.task import XJobExecutor
-from com.sun.star.awt import MessageBoxButtons as MSG_BUTTONS, XItemListener
+from com.sun.star.awt import MessageBoxButtons as MSG_BUTTONS, XItemListener, XActionListener
 import uno
 import os 
 import logging
@@ -456,8 +456,6 @@ class MainJob(unohelper.Base, XJobExecutor):
         # Get known providers from LiteLLM
         all_providers = sorted(litellm.provider_list)
         
-        # Add listener for advanced checkbox
-        from com.sun.star.awt import XItemListener
         class AdvancedToggleListener(unohelper.Base, XItemListener):
             def __init__(self, combo_provider):
                 self.combo_provider = combo_provider
