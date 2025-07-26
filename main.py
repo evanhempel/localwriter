@@ -469,10 +469,13 @@ class MainJob(unohelper.Base, XJobExecutor):
                     print(f"Advanced state: {is_advanced}")
                     
                     current_selection = self.combo_provider.Model.Text
-                
-                print(f"Current selection: {current_selection}")
-                print(f"All providers: {all_providers}")
-                print(f"Local providers: {local_providers}")
+                    
+                    print(f"Current selection: {current_selection}")
+                    print(f"All providers: {all_providers}")
+                    print(f"Local providers: {local_providers}")
+                except Exception as e:
+                    print(f"Error in itemStateChanged: {str(e)}")
+                    return
                 
                 # Clear existing items
                 self.combo_provider.removeItems(0, self.combo_provider.getItemCount())
