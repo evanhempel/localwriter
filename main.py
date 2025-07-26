@@ -464,16 +464,11 @@ class MainJob(unohelper.Base, XJobExecutor):
             def itemStateChanged(self, event):
                 try:
                     print(f"\nAdvanced toggle state changed. Source: {event.Source}")
-                    print(f"Event State: {event.State}")
-                    if hasattr(event.Source, 'Model') and hasattr(event.Source.Model, 'State'):
-                        print(f"Event Source Model State: {event.Source.Model.State}")
-                    else:
-                        print("Could not access Source.Model.State")
-                except Exception as e:
-                    print(f"Error in itemStateChanged: {str(e)}")
-                
-                is_advanced = event.State == 1
-                current_selection = self.combo_provider.Model.Text
+                    # Get state from the checkbox model directly
+                    is_advanced = event.Source.Model.State == 1
+                    print(f"Advanced state: {is_advanced}")
+                    
+                    current_selection = self.combo_provider.Model.Text
                 
                 print(f"Current selection: {current_selection}")
                 print(f"All providers: {all_providers}")
@@ -483,10 +478,12 @@ class MainJob(unohelper.Base, XJobExecutor):
                 self.combo_provider.removeItems(0, self.combo_provider.getItemCount())
                 
                 # Filter providers based on advanced state
-                providers = all_providers if is_advanced else [
-                    p for p in all_providers 
-                    if p.value in local_providers
-                ]
+                if is_advanced:
+                    providers = all_providers
+                    print("Showing ALL providers")
+                else:
+                    providers = [p for p in all_providers if p.value in local_providers]
+                    print(f"Showing LOCAL providers only: {[p.value for p in providers]}")
                 
                 print(f"Filtered providers count: {len(providers)}")
                 print(f"First 5 providers: {providers[:5]}")
@@ -503,10 +500,17 @@ class MainJob(unohelper.Base, XJobExecutor):
                             self.combo_provider.Model.Text = current_selection
                         else:
                             print(f"Previous selection {current_selection} not in filtered list")
+                            # Select first item if previous selection not available
+                            if providers:
+                                self.combo_provider.Model.Text = providers[0].value
                     except ValueError:
                         print(f"Invalid previous selection: {current_selection}")
+                        if providers:
+                            self.combo_provider.Model.Text = providers[0].value
                 else:
                     print("No previous selection to restore")
+                    if providers:
+                        self.combo_provider.Model.Text = providers[0].value
             
             def disposing(self, event):
                 print(f"AdvancedToggleListener disposing. Event: {event}")
